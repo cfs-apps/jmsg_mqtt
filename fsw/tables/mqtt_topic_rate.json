@@ -1,0 +1,15 @@
+{
+   
+   "title": "MQTT Rate Payload",
+   "description": "Define the syntax of the rate payload. Units are rad/sec.",
+   
+   "rate": 
+   {
+      "x": 1.0,
+      "y": 2.0,
+      "z": 3.0
+   }
+}
+
+{"rate":{"x": 1.0,"y": 2.0,"z": 3.0}}
+

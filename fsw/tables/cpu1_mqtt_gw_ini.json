@@ -1,0 +1,44 @@
+{
+   "title": "MQTT initialization file",
+   "description": [ "Define runtime configurations",
+                    "APP_CFE_NAME, TBL_CFE_NAME: Must match mqtt_platform_cfg.h definitions",
+                    "TBL_ERR_CODE: 3,472,883,840 = 0xCF000080. See cfe_error.h for field descriptions",
+                    "SEND_HK_MID: 8177(0x1FF1) is temporary during development. Change t 0x1F51(8017) of add to startup & scheduler"],
+   "config": {
+      
+      "APP_CFE_NAME": "MQTT",
+      
+      "APP_MAIN_PERF_ID":   91,
+      "CHILD_TASK_PERF_ID": 92,
+      
+      "MQTT_GW_CMD_TOPICID"     : 6248,
+      "MQTT_GW_SEND_HK_TOPICID" : 6249,
+
+      "MQTT_GW_HK_TLM_TOPICID"     : 2148,
+      "MQTT_GW_TOPIC_1_TLM_TOPICID": 2149,
+      
+      "CMD_PIPE_NAME":  "MQTT_CMD_PIPE",
+      "CMD_PIPE_DEPTH": 5,
+
+      "TOPIC_PIPE_NAME":      "MQTT_TOPIC_PIPE",
+      "TOPIC_PIPE_DEPTH":     20,
+      "TOPIC_PIPE_PEND_TIME": 250,
+
+      "MQTT_BROKER_PORT~":     8084,
+      "MQTT_BROKER_PORT":     1883,
+      "MQTT_BROKER_ADDRESS":  "broker.emqx.io",
+      "MQTT_BROKER_ADDRESS~":  "broker.hivemq.com",
+      "MQTT_BROKER_USERNAME": "UNDEF",
+      "MQTT_BROKER_PASSWORD": "UNDEF",
+      
+      "MQTT_CLIENT_NAME":       "osk-dev",
+      "MQTT_CLIENT_YIELD_TIME": 1000,
+      
+      "MQTT_TOPIC_TBL_DEF_FILE": "/cf/mqtt_topic.json",
+            
+      "CHILD_NAME":       "MQTT_CHILD",
+      "CHILD_STACK_SIZE": 32768,
+      "CHILD_PRIORITY":   120
+      
+   }
+}
