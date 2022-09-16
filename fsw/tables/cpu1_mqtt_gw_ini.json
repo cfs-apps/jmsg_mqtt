@@ -11,11 +11,11 @@
       "APP_MAIN_PERF_ID":   91,
       "CHILD_TASK_PERF_ID": 92,
       
-      "MQTT_GW_CMD_TOPICID"     : 6248,
-      "MQTT_GW_SEND_HK_TOPICID" : 6249,
+      "MQTT_GW_CMD_TOPICID"  : 0,
+      "BC_SCH_2_SEC_TOPICID" : 0,
 
-      "MQTT_GW_HK_TLM_TOPICID"     : 2148,
-      "MQTT_GW_TOPIC_1_TLM_TOPICID": 2149,
+      "MQTT_GW_HK_TLM_TOPICID"     : 0,
+      "MQTT_GW_TOPIC_1_TLM_TOPICID": 0,
       
       "CMD_PIPE_NAME":  "MQTT_CMD_PIPE",
       "CMD_PIPE_DEPTH": 5,
@@ -24,14 +24,14 @@
       "TOPIC_PIPE_DEPTH":     20,
       "TOPIC_PIPE_PEND_TIME": 250,
 
-      "MQTT_BROKER_PORT~":     8084,
+      "MQTT_BROKER_PORT~":    8084,
       "MQTT_BROKER_PORT":     1883,
-      "MQTT_BROKER_ADDRESS":  "broker.emqx.io",
-      "MQTT_BROKER_ADDRESS~":  "broker.hivemq.com",
+      "MQTT_BROKER_ADDRESS~":  "broker.emqx.io",
+      "MQTT_BROKER_ADDRESS":  "broker.hivemq.com",
       "MQTT_BROKER_USERNAME": "UNDEF",
       "MQTT_BROKER_PASSWORD": "UNDEF",
       
-      "MQTT_CLIENT_NAME":       "osk-dev",
+      "MQTT_CLIENT_NAME":       "basecamp-dev",
       "MQTT_CLIENT_YIELD_TIME": 1000,
       
       "MQTT_TOPIC_TBL_DEF_FILE": "/cf/mqtt_topic.json",

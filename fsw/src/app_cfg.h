@@ -85,7 +85,7 @@
 #define CFG_CHILD_TASK_PERF_ID       CHILD_TASK_PERF_ID
 
 #define CFG_MQTT_GW_CMD_TOPICID      MQTT_GW_CMD_TOPICID
-#define CFG_MQTT_GW_SEND_HK_TOPICID  MQTT_GW_SEND_HK_TOPICID
+#define CFG_SEND_HK_TLM_TOPICID      BC_SCH_2_SEC_TOPICID
  
 #define CFG_MQTT_GW_HK_TLM_TOPICID      MQTT_GW_HK_TLM_TOPICID
 #define CFG_MQTT_GW_TOPIC_1_TLM_TOPICID MQTT_GW_TOPIC_1_TLM_TOPICID
@@ -115,7 +115,7 @@
    XX(APP_MAIN_PERF_ID,uint32) \
    XX(CHILD_TASK_PERF_ID,uint32) \
    XX(MQTT_GW_CMD_TOPICID,uint32) \
-   XX(MQTT_GW_SEND_HK_TOPICID,uint32) \
+   XX(BC_SCH_2_SEC_TOPICID,uint32) \
    XX(MQTT_GW_HK_TLM_TOPICID,uint32) \
    XX(MQTT_GW_TOPIC_1_TLM_TOPICID,uint32) \
    XX(CMD_PIPE_NAME,char*) \
@@ -155,12 +155,13 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** exceeded so it is the developer's responsibility to verify the ranges. 
 */
 
-#define MQTT_GW_BASE_EID          (OSK_C_FW_APP_BASE_EID +  0)
-#define MQTT_MGR_BASE_EID         (OSK_C_FW_APP_BASE_EID + 20)
-#define MQTT_CLIENT_BASE_EID      (OSK_C_FW_APP_BASE_EID + 40)
-#define MSG_TRANS_BASE_EID        (OSK_C_FW_APP_BASE_EID + 60)
-#define MQTT_TOPIC_TBL_BASE_EID   (OSK_C_FW_APP_BASE_EID + 80)
-#define MQTT_TOPIC_RATE_BASE_EID  (OSK_C_FW_APP_BASE_EID + 90)
+#define MQTT_GW_BASE_EID              (OSK_C_FW_APP_BASE_EID +  0)
+#define MQTT_MGR_BASE_EID             (OSK_C_FW_APP_BASE_EID + 20)
+#define MQTT_CLIENT_BASE_EID          (OSK_C_FW_APP_BASE_EID + 40)
+#define MSG_TRANS_BASE_EID            (OSK_C_FW_APP_BASE_EID + 60)
+#define MQTT_TOPIC_TBL_BASE_EID       (OSK_C_FW_APP_BASE_EID + 80)
+#define MQTT_TOPIC_DISCRETE_BASE_EID  (OSK_C_FW_APP_BASE_EID + 90)
+#define MQTT_TOPIC_RATE_BASE_EID      (OSK_C_FW_APP_BASE_EID + 100)
 
 
 /******************************************************************************

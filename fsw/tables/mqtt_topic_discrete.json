@@ -1,0 +1,16 @@
+{
+   
+   "title": "MQTT Discrete Payload",
+   "description": "Provide a packet of discretes that are user defined",
+   
+   "discrete": 
+   {
+      "item-1": 1,
+      "item-2": 2,
+      "item-3": 3,
+      "item-4": 4
+   }
+}
+
+{"discrete":{"item-1": 1, "item-2": 2, "item-3": 3, "item-4": 4}}
+

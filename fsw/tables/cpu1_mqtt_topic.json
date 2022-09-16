@@ -4,34 +4,34 @@
    "description": [ "List the topics that are recognized and processed by the MQTT Gateway app",
                     "'id' must start at zero and increment. They are used as SB Message ID offsets",
                     "99 indicates an used entry. The table has been defined to support 5 messages",
-                    "which should accoomdate most gateway scenarios.",
+                    "which should accoomdate most Basecamp scenarios.",
                     "The sb-role entry defines the messages role from a SB perpective:",
                     "pub: read (subscribe) an MQTT JSON message from a MQTT broker and publish it on the SB",
                     "sub: read a SB message (subscribe) and publish it to a MQTT broker"],
    
    "topic": [
        {
-          "name": "osk/rate",
+          "name": "basecamp/discrete",
           "id": 0,
           "sb-role": "pub"
        },
        {
-          "name": "osk/pvt",
+          "name": "basecamp/rate",
           "id": 1,
-          "sb-role": "osk/sub"
+          "sb-role": "sub"
        },
        {
-          "name": "osk/tbd",
+          "name": "basecamp/pvt",
           "id": 99,
           "sb-role": "tbd"
        },
        {
-          "name": "osk/tbd",
+          "name": "basecamp/tbd",
           "id": 99,
           "sb-role": "tbd"
        },
        {
-          "name": "osk/tbd",
+          "name": "basecamp/tbd",
           "id": 99,
           "sb-role": "tbd"
        }

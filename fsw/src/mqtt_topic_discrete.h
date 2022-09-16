@@ -13,7 +13,7 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Manage MQTT rate topic
+**   Manage MQTT discrete topic
 **
 ** Notes:
 **   None
@@ -24,8 +24,8 @@
 **
 */
 
-#ifndef _mqtt_topic_rate_
-#define _mqtt_topic_rate_
+#ifndef _mqtt_topic_discrete_
+#define _mqtt_topic_discrete_
 
 /*
 ** Includes
@@ -43,27 +43,19 @@
 ** Event Message IDs
 */
 
-#define MQTT_TOPIC_RATE_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_RATE_BASE_EID + 0)
-#define MQTT_TOPIC_RATE_INIT_SB_MSG_TEST_EID  (MQTT_TOPIC_RATE_BASE_EID + 1)
-
+#define MQTT_TOPIC_DISCRETE_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_DISCRETE_BASE_EID + 0)
+#define MQTT_TOPIC_DISCRETE_INIT_SB_MSG_TEST_EID  (MQTT_TOPIC_DISCRETE_BASE_EID + 1)
+#define MQTT_TOPIC_DISCRETE_SB_MSG_TEST_EID       (MQTT_TOPIC_DISCRETE_BASE_EID + 2)
 
 /**********************/
 /** Type Definitions **/
 /**********************/
 
-typedef enum 
-{
-
-  MQTT_TOPIC_RATE_TEST_AXIS_X = 1,
-  MQTT_TOPIC_RATE_TEST_AXIS_Y = 2,
-  MQTT_TOPIC_RATE_TEST_AXIS_Z = 3
-  
-} MQTT_TOPIC_RATE_TestAxis_t;
 
 /******************************************************************************
 ** Telemetry
 ** 
-** MQTT_GW_RateTlm_t & MQTT_GW_RateTlm_Payload_t defined in EDS
+** MQTT_GW_DiscreteTlm_t & MQTT_GW_DiscreteTlm_Payload_t defined in EDS
 */
 
 
@@ -72,22 +64,19 @@ typedef struct
 {
 
    /*
-   ** Rate Telemetry
+   ** Discrete Telemetry
    */
    
-   MQTT_GW_RateTlm_t  TlmMsg;
-   char               JsonMsgTopic[MQTT_TOPIC_TBL_MAX_TOPIC_LEN];
-   char               JsonMsgPayload[1024];
+   MQTT_GW_DiscreteTlm_t  TlmMsg;
+   char  JsonMsgTopic[MQTT_TOPIC_TBL_MAX_TOPIC_LEN];
+   char  JsonMsgPayload[1024];
 
    /*
-   ** SB test puts rate on a single axis for N cycles
+   ** SB test treats the 4 discretes as a 4-bit integer that is incremented 
+   ** from 0..15 
    */
    
-   MQTT_TOPIC_RATE_TestAxis_t  TestAxis;
-   uint16                      TestAxisCycleCnt;
-   uint16                      TestAxisCycleLim;
-   float                       TestAxisDefRate;
-   float                       TestAxisRate;
+   uint16  TestData;
    
    /*
    ** Subset of the standard CJSON table data because this isn't using the OSK
@@ -100,7 +89,7 @@ typedef struct
    uint32  JsonToCfeCnt;
    
    
-} MQTT_TOPIC_RATE_Class_t;
+} MQTT_TOPIC_DISCRETE_Class_t;
 
 
 /************************/
@@ -109,49 +98,49 @@ typedef struct
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_RATE_Constructor
+** Function: MQTT_TOPIC_DISCRETE_Constructor
 **
-** Initialize the MQTT rate topic
+** Initialize the MQTT discrete topic
 **
 ** Notes:
 **   None
 **
 */
-void MQTT_TOPIC_RATE_Constructor(MQTT_TOPIC_RATE_Class_t *MqttTopicRatePtr,
-                                 CFE_SB_MsgId_t TlmMsgMid, const char *Topic);
+void MQTT_TOPIC_DISCRETE_Constructor(MQTT_TOPIC_DISCRETE_Class_t *MqttTopicDiscretePtr,
+                                     CFE_SB_MsgId_t TlmMsgMid, const char *Topic);
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_RATE_CfeToJson
+** Function: MQTT_TOPIC_DISCRETE_CfeToJson
 **
-** Convert a cFE rate message to a JSON topic message 
+** Convert a cFE discrete message to a JSON topic message 
 **
 ** Notes:
 **   1.  Signature must match MQTT_TOPIC_TBL_CfeToJson_t
 */
-bool MQTT_TOPIC_RATE_CfeToJson(const char **JsonMsgTopic, const char **JsonMsgPayload,
-                               const CFE_MSG_Message_t *CfeMsg);
+bool MQTT_TOPIC_DISCRETE_CfeToJson(const char **JsonMsgTopic, const char **JsonMsgPayload,
+                                   const CFE_MSG_Message_t *CfeMsg);
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_RATE_JsonToCfe
+** Function: MQTT_TOPIC_DISCRETE_JsonToCfe
 **
-** Convert a JSON rate topic message to a cFE rate message 
+** Convert a JSON discrete topic message to a cFE discrete message 
 **
 ** Notes:
 **   1.  Signature must match MQTT_TOPIC_TBL_JsonToCfe_t
 */
-bool MQTT_TOPIC_RATE_JsonToCfe(CFE_MSG_Message_t **CfeMsg, 
-                               const char *JsonMsgPayload, uint16 PayloadLen);
+bool MQTT_TOPIC_DISCRETE_JsonToCfe(CFE_MSG_Message_t **CfeMsg, 
+                                   const char *JsonMsgPayload, uint16 PayloadLen);
 
 /******************************************************************************
-** Function: MQTT_TOPIC_RATE_SbMsgTest
+** Function: MQTT_TOPIC_DISCRETE_SbMsgTest
 **
-** Generate and send SB rate topic messages on SB that are read back by MQTT_GW
+** Generate and send SB discrete topic messages on SB that are read back by MQTT_GW
 ** and cause MQTT messages to be generated from the SB messages.  
 **
 */
-void MQTT_TOPIC_RATE_SbMsgTest(bool Init, int16 Param);
+void MQTT_TOPIC_DISCRETE_SbMsgTest(bool Init, int16 Param);
 
 
-#endif /* _mqtt_topic_rate_ */
+#endif /* _mqtt_topic_discrete_ */

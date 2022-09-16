@@ -163,7 +163,7 @@ bool MQTT_TOPIC_RATE_JsonToCfe(CFE_MSG_Message_t **CfeMsg,
 ** Convert a JSON rate topic message to a cFE rate message
 **
 ** Notes:
-**   1. Param is used scale the default test rate and change the sign
+**   1. Param is used to scale the default test rate and change the sign
 **      Increase rate:   2 <= Param <= 10
 **      Deccrease rate: 12 <= Param <= 20
 **
@@ -189,6 +189,9 @@ void MQTT_TOPIC_RATE_SbMsgTest(bool Init, int16 Param)
       MqttTopicRate->TlmMsg.Payload.Z = 0.0;
       MqttTopicRate->TestAxis         = MQTT_TOPIC_RATE_TEST_AXIS_X;
       MqttTopicRate->TestAxisCycleCnt = 0;
+
+      CFE_EVS_SendEvent(MQTT_TOPIC_RATE_INIT_SB_MSG_TEST_EID, CFE_EVS_EventType_INFORMATION,
+                        "Rate topic test started with axis rate %6.2f", MqttTopicRate->TestAxisRate);
 
    }
    else
@@ -251,8 +254,8 @@ static bool LoadJsonData(const char *JsonMsgPayload, uint16 PayloadLen)
    bool      RetStatus = false;
    size_t    ObjLoadCnt;
 
+OS_printf("Rate: LoadJsonData() %s, %d\n",JsonMsgPayload, PayloadLen);
    memset(&MqttTopicRate->TlmMsg.Payload, 0, sizeof(MQTT_GW_RateTlm_Payload_t));
-OS_printf("LoadJsonData() %s, %d\n",JsonMsgPayload, PayloadLen);
    ObjLoadCnt = CJSON_LoadObjArray(JsonTblObjs, MqttTopicRate->JsonObjCnt, 
                                   JsonMsgPayload, PayloadLen);
 

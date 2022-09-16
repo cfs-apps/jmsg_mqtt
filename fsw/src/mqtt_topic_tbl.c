@@ -31,8 +31,6 @@
 
 #include <string.h>
 #include "mqtt_topic_tbl.h"
-#include "mqtt_topic_rate.h"
-
 
 /************************************/
 /** Local File Function Prototypes **/
@@ -80,9 +78,9 @@ static CJSON_Obj_t JsonTblObjs[] =
 */
 
 static MQTT_TOPIC_TBL_VirtualFunc_t VirtualFunc[] =
-{
-   { MQTT_TOPIC_RATE_CfeToJson, MQTT_TOPIC_RATE_JsonToCfe, MQTT_TOPIC_RATE_SbMsgTest },
-   { StubCfeToJson, StubJsonToCfe, StubSbMsgTest },
+{   
+   { MQTT_TOPIC_DISCRETE_CfeToJson, MQTT_TOPIC_DISCRETE_JsonToCfe, MQTT_TOPIC_DISCRETE_SbMsgTest },
+   { MQTT_TOPIC_RATE_CfeToJson,     MQTT_TOPIC_RATE_JsonToCfe,     MQTT_TOPIC_RATE_SbMsgTest },
    { StubCfeToJson, StubJsonToCfe, StubSbMsgTest },
    { StubCfeToJson, StubJsonToCfe, StubSbMsgTest },
    { StubCfeToJson, StubJsonToCfe, StubSbMsgTest }
@@ -114,9 +112,12 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr,
    }
    
    // TODO - Use topic definition from table in constructors
+   MQTT_TOPIC_DISCRETE_Constructor(&MqttTopicTbl->Discrete, 
+                                   CFE_SB_ValueToMsgId(TopicBaseMid+0),
+                                   "basecamp/discrete");
    MQTT_TOPIC_RATE_Constructor(&MqttTopicTbl->Rate, 
-                               CFE_SB_ValueToMsgId(TopicBaseMid+0),
-                               "osk/rate");
+                               CFE_SB_ValueToMsgId(TopicBaseMid+1),
+                               "basecamp/rate");
    
    
 } /* End MQTT_TOPIC_TBL_Constructor() */

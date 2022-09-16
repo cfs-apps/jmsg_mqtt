@@ -189,7 +189,7 @@ static int32 InitApp(void)
       CFE_ES_PerfLogEntry(MqttGw.PerfId);
 
       MqttGw.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_CMD_TOPICID));
-      MqttGw.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_SEND_HK_TOPICID));
+      MqttGw.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_TLM_TOPICID));
    
       RetStatus = CFE_SUCCESS;
    

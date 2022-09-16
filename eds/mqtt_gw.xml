@@ -113,6 +113,15 @@
         </EntryList>
       </ContainerDataType>
 
+      <ContainerDataType name="DiscreteTlm_Payload" shortDescription="Generic discretes">
+        <EntryList>
+          <Entry name="Item_1" type="BASE_TYPES/uint8"  />
+          <Entry name="Item_2" type="BASE_TYPES/uint8"  />
+          <Entry name="Item_3" type="BASE_TYPES/uint8"  />
+          <Entry name="Item_4" type="BASE_TYPES/uint8"  />
+        </EntryList>
+      </ContainerDataType>
+
       <ContainerDataType name="RateTlm_Payload" shortDescription="Spacecraft rates">
         <EntryList>
           <Entry name="X" type="BASE_TYPES/float"  />
@@ -186,6 +195,11 @@
         </EntryList>
       </ContainerDataType>
      
+      <ContainerDataType name="DiscreteTlm" baseType="CFE_HDR/TelemetryHeader">
+        <EntryList>
+          <Entry type="DiscreteTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
       <ContainerDataType name="RateTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
           <Entry type="RateTlm_Payload" name="Payload" />
@@ -208,12 +222,6 @@
               <GenericTypeMap name="TelecommandDataType" type="CommandBase" />
             </GenericTypeMapSet>
           </Interface>
-          <Interface name="SEND_HK" shortDescription="Signal app to send its housekeeping telemetry command interface" type="CFE_SB/Telecommand">
-            <!-- This uses a bare spacepacket with no payload -->
-            <GenericTypeMapSet>
-              <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
-            </GenericTypeMapSet>
-          </Interface>
           
           <Interface name="HK_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
@@ -221,6 +229,11 @@
             </GenericTypeMapSet>
           </Interface>
 
+          <Interface name="DISCRETE_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="DiscreteTlm" />
+            </GenericTypeMapSet>
+          </Interface>
           <Interface name="RATE_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
               <GenericTypeMap name="TelemetryDataType" type="RateTlm" />
@@ -235,17 +248,17 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"       initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"    initialValue="${CFE_MISSION/MQTT_GW_SEND_HK_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RateTlmTopicId"   initialValue="${CFE_MISSION/MQTT_GW_TOPIC_1_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"         initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"       initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscreteTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_1_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RateTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_TOPIC_2_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
-            <ParameterMap interface="CMD"        parameter="TopicId" variableRef="CmdTopicId" />
-            <ParameterMap interface="SEND_HK"    parameter="TopicId" variableRef="SendHkTopicId" />
-            <ParameterMap interface="HK_TLM"     parameter="TopicId" variableRef="HkTlmTopicId" />
-            <ParameterMap interface="RATE_TLM"   parameter="TopicId" variableRef="RateTlmTopicId" />
+            <ParameterMap interface="CMD"          parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="HK_TLM"       parameter="TopicId" variableRef="HkTlmTopicId" />
+            <ParameterMap interface="DISCRETE_TLM" parameter="TopicId" variableRef="DiscreteTlmTopicId" />
+            <ParameterMap interface="RATE_TLM"     parameter="TopicId" variableRef="RateTlmTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>
