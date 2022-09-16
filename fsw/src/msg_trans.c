@@ -118,7 +118,7 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
                MsgFound = true;
                memcpy(TopicStr, MsgData->topicName->lenstring.data, TopicLen);
                TopicStr[TopicLen] = '\0';
-               CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_INFORMATION,
+               CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                                 "MSG_TRANS_ProcessMqttMsg: Topic=%s, Payload=%s", 
                                  TopicStr, &MsgData->topicName->lenstring.data[TopicLen]);
             } 
@@ -132,7 +132,7 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
       if (MsgFound)
       {
             
-         CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_INFORMATION,
+         CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                            "MSG_TRANS_ProcessMqttMsg: Found message at index %d", id); 
                        
          JsonToCfe = MQTT_TOPIC_TBL_GetJsonToCfe(id);    
@@ -142,7 +142,7 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
       
             CFE_MSG_GetMsgId(CfeMsg, &MsgId);
       
-            CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_INFORMATION,
+            CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                               "MSG_TRANS_ProcessMqttMsg: Sending SB message 0x%04X", CFE_SB_MsgIdToValue(MsgId)); 
             
             CFE_SB_TimeStampMsg(CFE_MSG_PTR(*CfeMsg));
@@ -205,7 +205,7 @@ bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
    if (SbStatus == CFE_SUCCESS)
    {
    
-      CFE_EVS_SendEvent(MSG_TRANS_PROCESS_SB_MSG_EID, CFE_EVS_EventType_INFORMATION, 
+      CFE_EVS_SendEvent(MSG_TRANS_PROCESS_SB_MSG_EID, CFE_EVS_EventType_DEBUG, 
                         "MSG_TRANS_ProcessSbMsg: Received SB message ID 0x%04X, MQTT base ID 0x%04X", 
                         CFE_SB_MsgIdToValue(MsgId), MsgTrans->TopicBaseMid); 
       
@@ -220,7 +220,7 @@ bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
             *Topic   = JsonMsgTopic; 
             *Payload = JsonMsgPayload;
             RetStatus = true;
-            CFE_EVS_SendEvent(MSG_TRANS_PROCESS_SB_MSG_EID, CFE_EVS_EventType_INFORMATION,
+            CFE_EVS_SendEvent(MSG_TRANS_PROCESS_SB_MSG_EID, CFE_EVS_EventType_DEBUG,
                               "MSG_TRANS_ProcessMqttMsg: Created MQTT topic %s message %s",
                               JsonMsgTopic, JsonMsgPayload);             
             MsgTrans->ValidSbMsgCnt++;
