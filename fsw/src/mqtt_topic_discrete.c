@@ -200,10 +200,11 @@ static bool LoadJsonData(const char *JsonMsgPayload, uint16 PayloadLen)
    bool      RetStatus = false;
    size_t    ObjLoadCnt;
 
-OS_printf("Discrete: LoadJsonData() %s, %d\n",JsonMsgPayload, PayloadLen);
    memset(&MqttTopicDiscrete->TlmMsg.Payload, 0, sizeof(MQTT_GW_DiscreteTlm_Payload_t));
    ObjLoadCnt = CJSON_LoadObjArray(JsonTblObjs, MqttTopicDiscrete->JsonObjCnt, 
                                    JsonMsgPayload, PayloadLen);
+   CFE_EVS_SendEvent(MQTT_TOPIC_DISCRETE_LOAD_JSON_DATA_EID, CFE_EVS_EventType_DEBUG,
+                     "Discrete LoadJsonData() process %d JSON objects", (uint16)ObjLoadCnt);
 
    if (ObjLoadCnt == MqttTopicDiscrete->JsonObjCnt)
    {

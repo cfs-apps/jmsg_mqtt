@@ -52,14 +52,6 @@
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
 
-      <EnumeratedDataType name="BooleanUint8" shortDescription="8-bit Boolean for commands" >
-        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
-        <EnumerationList>
-          <Enumeration label="FALSE" value="0" shortDescription="" />
-          <Enumeration label="TRUE"  value="1" shortDescription="" />
-        </EnumerationList>
-      </EnumeratedDataType>
-
       <ContainerDataType name="LoadTbl_Payload" shortDescription="Load an app's JSON table">
         <EntryList>
           <Entry name="Id"       type="TblId"                   shortDescription="Table identifier" />
@@ -103,11 +95,15 @@
           <Entry name="ChildValidCmdCnt"    type="BASE_TYPES/uint16"   />
           <Entry name="ChildInvalidCmdCnt"  type="BASE_TYPES/uint16"   />
           <Entry name="LastTblAction"       type="OSK_C_FW/TblActions" />
-          <Entry name="TopicTblLoaded"      type="BASE_TYPES/uint8"    />
+          <Entry name="TopicTblLoaded"      type="OSK_C_FW/BooleanUint8" />
           <Entry name="MqttYieldTime"       type="BASE_TYPES/uint32"   />
           <Entry name="SbPendTime"          type="BASE_TYPES/uint32"   />
-          <Entry name="MqttConnected"       type="BASE_TYPES/uint8"    />
-          <Entry name="SbTopicTestActive"   type="BASE_TYPES/uint8"    />
+          <Entry name="MqttConnected"       type="OSK_C_FW/BooleanUint8" />
+          <Entry name="ValidMqttMsgCnt"     type="BASE_TYPES/uint32"   />
+          <Entry name="InvalidMqttMsgCnt"   type="BASE_TYPES/uint32"   />
+          <Entry name="ValidSbMsgCnt"       type="BASE_TYPES/uint32"   />
+          <Entry name="InvalidSbMsgCnt"     type="BASE_TYPES/uint32"   />
+          <Entry name="SbTopicTestActive"   type="OSK_C_FW/BooleanUint8" />
           <Entry name="SbTopicTestId"       type="BASE_TYPES/uint16"   />
           <Entry name="SbTopicTestParam"    type="BASE_TYPES/int16"    />
         </EntryList>

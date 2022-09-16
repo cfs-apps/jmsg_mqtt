@@ -84,6 +84,10 @@ typedef struct
 {
 
    uint32  TopicBaseMid;
+   uint32  ValidMqttMsgCnt;
+   uint32  InvalidMqttMsgCnt;
+   uint32  ValidSbMsgCnt;
+   uint32  InvalidSbMsgCnt;
    
    /*
    ** Telemetry Messages

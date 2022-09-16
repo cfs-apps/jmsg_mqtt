@@ -343,6 +343,10 @@ void SendHousekeepingPkt(void)
 
    Payload->MqttConnected = MqttGw.MqttMgr.MqttClient.Connected;
 
+   Payload->ValidMqttMsgCnt   = MqttGw.MqttMgr.MsgTrans.ValidMqttMsgCnt;
+   Payload->InvalidMqttMsgCnt = MqttGw.MqttMgr.MsgTrans.InvalidMqttMsgCnt;
+   Payload->ValidSbMsgCnt     = MqttGw.MqttMgr.MsgTrans.ValidSbMsgCnt;
+   Payload->InvalidSbMsgCnt   = MqttGw.MqttMgr.MsgTrans.InvalidSbMsgCnt;
 
    CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttGw.HkTlm.TelemetryHeader));
    CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttGw.HkTlm.TelemetryHeader), true);

@@ -93,14 +93,14 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
    CFE_MSG_Message_t *CfeMsg;
    CFE_SB_MsgId_t    MsgId = CFE_SB_INVALID_MSG_ID;
       
-OS_printf("\n****************************  MSG_TRANS_ProcessMqttMsg() ****************************\n");
-   CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_INFORMATION,
+   CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                      "MSG_TRANS_ProcessMsg: Received topic %s", MsgData->topicName->lenstring.data);
                     
    if(MsgPtr->payloadlen)
    {
       
-      OS_printf("MsgPtr->payloadlen=%d\n", (int)MsgPtr->payloadlen);
+      CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
+                        "MsgPtr->payloadlen=%d\n", (int)MsgPtr->payloadlen);
 
       while ( MsgFound == false && id < MQTT_TOPIC_TBL_MAX_TOPICS)
       {
@@ -111,7 +111,8 @@ OS_printf("\n****************************  MSG_TRANS_ProcessMqttMsg() **********
             
             TopicLen = strlen(TopicTblEntry->Name);
             
-            OS_printf("Table topic name=%s, length=%d\n", TopicTblEntry->Name, TopicLen);
+            CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
+                              "Table topic name=%s, length=%d\n", TopicTblEntry->Name, TopicLen);
             if (strncmp(TopicTblEntry->Name, MsgData->topicName->lenstring.data, TopicLen) == 0)
             {
                MsgFound = true;
@@ -146,7 +147,8 @@ OS_printf("\n****************************  MSG_TRANS_ProcessMqttMsg() **********
             
             CFE_SB_TimeStampMsg(CFE_MSG_PTR(*CfeMsg));
             CFE_SB_TransmitMsg(CFE_MSG_PTR(*CfeMsg), true);
-
+            MsgTrans->ValidMqttMsgCnt++;
+            
          }
          else
          {
@@ -168,7 +170,8 @@ OS_printf("\n****************************  MSG_TRANS_ProcessMqttMsg() **********
    } /* End null message len */
    else {
       
-      OS_printf("Null MQTT wessage data length for %s\n", MsgData->topicName->lenstring.data);
+      CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR,
+                        "Null MQTT message data length for %s\n", MsgData->topicName->lenstring.data);
     
    }
    
@@ -197,7 +200,7 @@ bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
    const char *JsonMsgTopic;
    const char *JsonMsgPayload;
 
-OS_printf("\n****************************  MSG_TRANS_ProcessSBMsg() ****************************\n");
+   
    SbStatus = CFE_MSG_GetMsgId(MsgPtr, &MsgId);
    if (SbStatus == CFE_SUCCESS)
    {
@@ -220,6 +223,8 @@ OS_printf("\n****************************  MSG_TRANS_ProcessSBMsg() ************
             CFE_EVS_SendEvent(MSG_TRANS_PROCESS_SB_MSG_EID, CFE_EVS_EventType_INFORMATION,
                               "MSG_TRANS_ProcessMqttMsg: Created MQTT topic %s message %s",
                               JsonMsgTopic, JsonMsgPayload);             
+            MsgTrans->ValidSbMsgCnt++;
+
          }
          else
          {
@@ -236,6 +241,11 @@ OS_printf("\n****************************  MSG_TRANS_ProcessSBMsg() ************
       }
 
    } /* End message Id */
+   else
+   {
+      CFE_EVS_SendEvent(MSG_TRANS_PROCESS_SB_MSG_EID, CFE_EVS_EventType_ERROR, 
+                        "Error reading SB message, return status = 0x%04X", SbStatus); 
+   }
 
    return RetStatus;
    
@@ -252,6 +262,10 @@ void MSG_TRANS_ResetStatus(void)
 {
 
    MQTT_TOPIC_TBL_ResetStatus();
+   MsgTrans->ValidMqttMsgCnt   = 0;
+   MsgTrans->InvalidMqttMsgCnt = 0;
+   MsgTrans->ValidSbMsgCnt     = 0;
+   MsgTrans->InvalidSbMsgCnt   = 0;
 
 } /* MSG_TRANS_ResetStatus() */
 

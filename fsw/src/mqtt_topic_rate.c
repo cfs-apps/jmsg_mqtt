@@ -254,10 +254,11 @@ static bool LoadJsonData(const char *JsonMsgPayload, uint16 PayloadLen)
    bool      RetStatus = false;
    size_t    ObjLoadCnt;
 
-OS_printf("Rate: LoadJsonData() %s, %d\n",JsonMsgPayload, PayloadLen);
    memset(&MqttTopicRate->TlmMsg.Payload, 0, sizeof(MQTT_GW_RateTlm_Payload_t));
    ObjLoadCnt = CJSON_LoadObjArray(JsonTblObjs, MqttTopicRate->JsonObjCnt, 
                                   JsonMsgPayload, PayloadLen);
+   CFE_EVS_SendEvent(MQTT_TOPIC_RATE_LOAD_JSON_DATA_EID, CFE_EVS_EventType_DEBUG,
+                     "Rate LoadJsonData() process %d JSON objects", (uint16)ObjLoadCnt);
 
    if (ObjLoadCnt == MqttTopicRate->JsonObjCnt)
    {
