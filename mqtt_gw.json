@@ -1,12 +1,15 @@
-{ "app": {
+{ 
+
+   "app": {
    
    "title": "MQTT_GW",
    "version": "0.1.0",
-   "owner": "OpenSatkit",
-   "url": "https://github.com/OpenSatKit-Apps/mqtt_gw",
+   "supplier": "Open STEMware",
+   "copyright": "bitValence",
+   "url": "https://github.com/cfs-apps/mqtt_gw",
 
    "description": [
-      "This app provides a gateway between an MQTT broker and the cFS Software",
+      "MQTT_GW provides a gateway between an MQTT broker and the cFS Software",
       "Bus. Developers define new topic objects to extend the existing topic",
       "definitions."
    ],
@@ -21,10 +24,11 @@
       "load_addr": 0,
       "exception-action": 0,
       "app-framework": "osk",
-      "tables": ["mqtt_gw_ini.json","mqtt_topic.json"],
-      "cmd-mid": "MQTT_GW_CMD_MID"
-   }
-   
+      "tables": ["mqtt_gw_ini.json","mqtt_topic.json"]
+   },
+
+   "requires": ["osk_c_fw", "mqtt_lib"]
+
 }}
 
 

@@ -19,6 +19,9 @@
 ** Notes:
 **   1. This file only performs app-level functions. MQTT_MGR controls
 **      the MQTT gateway functionality.
+**   2. TODO: Remove 'send HK tlm' logic once the app app has been used
+**      in enough use cases to know the current command processing
+**      and send HK logic is sufficient 
 **
 ** References:
 **   1. OpenSatKit Object-based Application Developer's Guide
@@ -111,6 +114,7 @@ void MQTT_GW_AppMain(void)
       {
           MqttGw.PollCmdCnt = 0;
           RunStatus = ProcessCommands();
+          SendHousekeepingPkt();
       } 
       
    } /* End CFE_ES_RunLoop */
@@ -216,7 +220,7 @@ static int32 InitApp(void)
  
       CFE_SB_CreatePipe(&MqttGw.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_CMD_PIPE_NAME));  
       CFE_SB_Subscribe(MqttGw.CmdMid,    MqttGw.CmdPipe);
-      CFE_SB_Subscribe(MqttGw.SendHkMid, MqttGw.CmdPipe);
+      //TODO: See file prologue. CFE_SB_Subscribe(MqttGw.SendHkMid, MqttGw.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_NOOP_CC,   NULL, MQTT_GW_NoOpCmd,     0);
