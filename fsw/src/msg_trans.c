@@ -79,7 +79,7 @@ void MSG_TRANS_Constructor(MSG_TRANS_Class_t *MsgTransPtr,
 **   2. MQTT has no delimeter between the topic and payload
 **
 */
-void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
+void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
 {
    
    MQTTMessage* MsgPtr = MsgData->message;
@@ -92,6 +92,7 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
    MQTT_TOPIC_TBL_JsonToCfe_t JsonToCfe;
    CFE_MSG_Message_t *CfeMsg;
    CFE_SB_MsgId_t    MsgId = CFE_SB_INVALID_MSG_ID;
+   CFE_MSG_Size_t    MsgSize;
       
    CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                      "MSG_TRANS_ProcessMsg: Received topic %s", MsgData->topicName->lenstring.data);
@@ -102,12 +103,12 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
       CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                         "MsgPtr->payloadlen=%d\n", (int)MsgPtr->payloadlen);
 
-      while ( MsgFound == false && id < MQTT_TOPIC_TBL_MAX_TOPICS)
+      while (!MsgFound && id < MQTT_TOPIC_TBL_MAX_TOPICS)
       {
 
-        TopicTblEntry = MQTT_TOPIC_TBL_GetEntry(id);
-        if (TopicTblEntry != NULL)
-        {
+         TopicTblEntry = MQTT_TOPIC_TBL_GetEntry(id);
+         if (TopicTblEntry != NULL)
+         {
             
             TopicLen = strlen(TopicTblEntry->Name);
             
@@ -122,11 +123,11 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
                                 "MSG_TRANS_ProcessMqttMsg: Topic=%s, Payload=%s", 
                                  TopicStr, &MsgData->topicName->lenstring.data[TopicLen]);
             } 
-            else
-            {
-               id++;
-            }
-        }
+         }
+         if (!MsgFound)
+         {
+            id++;
+         }
       } /* End while loop */
 
       if (MsgFound)
@@ -141,9 +142,10 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
          {
       
             CFE_MSG_GetMsgId(CfeMsg, &MsgId);
-      
+            CFE_MSG_GetSize(CfeMsg, &MsgSize);
             CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
-                              "MSG_TRANS_ProcessMqttMsg: Sending SB message 0x%04X", CFE_SB_MsgIdToValue(MsgId)); 
+                              "MSG_TRANS_ProcessMqttMsg: Sending SB message 0x%04X, len %d", 
+                              CFE_SB_MsgIdToValue(MsgId), (int)MsgSize); 
             
             CFE_SB_TimeStampMsg(CFE_MSG_PTR(*CfeMsg));
             CFE_SB_TransmitMsg(CFE_MSG_PTR(*CfeMsg), true);
@@ -159,12 +161,10 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
          
       } /* End if message found */
       else 
-      {
-      
+      {      
          CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR, 
                            "MSG_TRANS_ProcessMqttMsg: Could not find a topic match for %s", 
-                           MsgData->topicName->lenstring.data);
-      
+                           MsgData->topicName->lenstring.data);      
       }
    
    } /* End null message len */
@@ -172,12 +172,10 @@ void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData)
       
       CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR,
                         "Null MQTT message data length for %s\n", MsgData->topicName->lenstring.data);
-    
    }
    
    fflush(stdout);
 
-  
 } /* End MSG_TRANS_ProcessMqttMsg() */
 
 

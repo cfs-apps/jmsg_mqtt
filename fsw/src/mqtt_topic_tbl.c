@@ -79,9 +79,9 @@ static CJSON_Obj_t JsonTblObjs[] =
 
 static MQTT_TOPIC_TBL_VirtualFunc_t VirtualFunc[] =
 {   
+   { MQTT_TOPIC_SBMSG_CfeToMqtt,    MQTT_TOPIC_SBMSG_MqttToCfe,    MQTT_TOPIC_SBMSG_SbMsgTest    },
    { MQTT_TOPIC_DISCRETE_CfeToJson, MQTT_TOPIC_DISCRETE_JsonToCfe, MQTT_TOPIC_DISCRETE_SbMsgTest },
-   { MQTT_TOPIC_RATE_CfeToJson,     MQTT_TOPIC_RATE_JsonToCfe,     MQTT_TOPIC_RATE_SbMsgTest },
-   { StubCfeToJson, StubJsonToCfe, StubSbMsgTest },
+   { MQTT_TOPIC_RATE_CfeToJson,     MQTT_TOPIC_RATE_JsonToCfe,     MQTT_TOPIC_RATE_SbMsgTest     },
    { StubCfeToJson, StubJsonToCfe, StubSbMsgTest },
    { StubCfeToJson, StubJsonToCfe, StubSbMsgTest }
    
@@ -112,11 +112,15 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr,
    }
    
    // TODO - Use topic definition from table in constructors
+   MQTT_TOPIC_SBMSG_Constructor(&MqttTopicTbl->SbMsg, 
+                                CFE_SB_ValueToMsgId(TopicBaseMid),
+                                CFE_SB_ValueToMsgId(TopicBaseMid+1),
+                                "basecamp/sbmsg");
    MQTT_TOPIC_DISCRETE_Constructor(&MqttTopicTbl->Discrete, 
-                                   CFE_SB_ValueToMsgId(TopicBaseMid+0),
+                                   CFE_SB_ValueToMsgId(TopicBaseMid+1),
                                    "basecamp/discrete");
    MQTT_TOPIC_RATE_Constructor(&MqttTopicTbl->Rate, 
-                               CFE_SB_ValueToMsgId(TopicBaseMid+1),
+                               CFE_SB_ValueToMsgId(TopicBaseMid+2),
                                "basecamp/rate");
    
    
@@ -227,10 +231,10 @@ MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Idx)
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_GetEntry
 **
-** Return a pointer to the table entry ide=entified by 'i'.
+** Return a pointer to the table entry identified by 'Idx'.
 ** 
 ** Notes:
-**   1. i must be less than MQTT_TOPIC_TBL_MAX_TOPICS
+**   1. Idx must be less than MQTT_TOPIC_TBL_MAX_TOPICS
 **
 */
 const MQTT_TOPIC_TBL_Entry_t *MQTT_TOPIC_TBL_GetEntry(uint8 Idx)
@@ -322,7 +326,7 @@ void MQTT_TOPIC_TBL_ResetStatus(void)
 ** Function: MQTT_TOPIC_TBL_RunSbMsgTest
 **
 ** Notes:
-**   1. Assumes Idx has been verified and that the VirtaulFunc array does not
+**   1. Assumes Idx has been verified and that the VirtualFunc array does not
 **      have any NULL pointers 
 **
 */

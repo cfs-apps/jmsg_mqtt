@@ -30,17 +30,18 @@
 **         Include a test function to generate CCSDS packets
 **      2. mqtt_topic_tbl.h:
 **         - Include the translator object header
-**         - Add the class/object declaration to MQTT_TOPIC_TBL_Class_t.
+**         - Add the class/object declaration to MQTT_TOPIC_TBL_Class_t
 **      3. mqtt_topic_tbl.c:
 **         - Add the conversion functions to ConvertFunc[]
-**         - Add a call to the translator object in constructor 
+**         - In the constructor, add a call to the translator object's constructor 
 **      4. mqtt_gw.xml: 
 **         - Add topic definition
 **      5. cpu1_mqtt_topic.json: 
 **         - Add topic definition
 **      6. Create/modify apps that generate CCSDS topic packets to
 **         use the EDS definition
-**      7. Ensure topic identfiiers are consistent
+**      7. Ensure topic identfiiers are consistent 
+**         - mqtt_topic_tbl constructor must match the EDS definition order
 **
 ** References:
 **   1. OpenSatKit Object-based Application Developer's Guide
@@ -56,6 +57,7 @@
 */
 
 #include "app_cfg.h"
+#include "mqtt_topic_sbmsg.h"
 #include "mqtt_topic_rate.h"
 #include "mqtt_topic_discrete.h"
 
@@ -140,6 +142,7 @@ typedef struct
    */
    
    MQTT_TOPIC_TBL_Data_t       Data;
+   MQTT_TOPIC_SBMSG_Class_t    SbMsg;
    MQTT_TOPIC_DISCRETE_Class_t Discrete;
    MQTT_TOPIC_RATE_Class_t     Rate;
    

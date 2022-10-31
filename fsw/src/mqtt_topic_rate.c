@@ -133,7 +133,9 @@ bool MQTT_TOPIC_RATE_CfeToJson(const char **JsonMsgTopic, const char **JsonMsgPa
 /******************************************************************************
 ** Function: MQTT_TOPIC_RATE_JsonToCfe
 **
-** Convert a JSON rate topic message to a cFE rate message 
+** Send a cFE rate message on the SB causing MQTT_TOPIC_RATE_CfeToJson()
+** to be called which the converts the SB message to a MQTT JSON rate topic. 
+** The topic can be observed
 **
 */
 bool MQTT_TOPIC_RATE_JsonToCfe(CFE_MSG_Message_t **CfeMsg, 

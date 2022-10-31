@@ -128,7 +128,7 @@ void MSG_TRANS_Constructor(MSG_TRANS_Class_t *MsgTransPtr,
 **   1. Signature must mach MQTT_CLIENT_MsgCallback
 **
 */
-void MSG_TRANS_ProcessMqttMsg(MessageData* MsgData);
+void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData);
 
 
 /******************************************************************************

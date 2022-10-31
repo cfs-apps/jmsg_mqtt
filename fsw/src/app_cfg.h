@@ -160,9 +160,9 @@ DECLARE_ENUM(Config,APP_CONFIG)
 #define MQTT_CLIENT_BASE_EID          (OSK_C_FW_APP_BASE_EID + 40)
 #define MSG_TRANS_BASE_EID            (OSK_C_FW_APP_BASE_EID + 60)
 #define MQTT_TOPIC_TBL_BASE_EID       (OSK_C_FW_APP_BASE_EID + 80)
-#define MQTT_TOPIC_DISCRETE_BASE_EID  (OSK_C_FW_APP_BASE_EID + 90)
-#define MQTT_TOPIC_RATE_BASE_EID      (OSK_C_FW_APP_BASE_EID + 100)
-
+#define MQTT_TOPIC_SBMSG_BASE_EID     (OSK_C_FW_APP_BASE_EID + 90)
+#define MQTT_TOPIC_DISCRETE_BASE_EID  (OSK_C_FW_APP_BASE_EID + 100)
+#define MQTT_TOPIC_RATE_BASE_EID      (OSK_C_FW_APP_BASE_EID + 110)
 
 /******************************************************************************
 ** MQTT Client
@@ -172,6 +172,16 @@ DECLARE_ENUM(Config,APP_CONFIG)
 #define MQTT_CLIENT_READ_BUF_LEN  1000 
 #define MQTT_CLIENT_SEND_BUF_LEN  1000 
 #define MQTT_CLIENT_TIMEOUT_MS    2000 
+
+/******************************************************************************
+** MQTT Topic CCSDS
+**
+** The CCSDS topic contains a CCSDS message as its payload so this length must
+** be large enough to accomodate the largest CCSDS packet that will be sent as
+** a MQTT payload.
+*/
+
+#define MQTT_TOPIC_SB_MSG_MAX_LEN  4096  //TODO - Replace with EDS definition
 
 /******************************************************************************
 ** MQTT Topic Table
