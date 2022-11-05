@@ -37,8 +37,7 @@
 /*******************************/
 
 static void ProcessSbTopicMsgs(uint32 PerfId);
-static void SubscribeToMessages(uint32 TopicBaseMid);
-
+static void SubscribeToTopicMessages(uint32 TopicBaseMid);
 
 /*****************/
 /** Global Data **/
@@ -53,7 +52,9 @@ static MQTT_MGR_Class_t* MqttMgr;
 ** Initialize the MQTT Manager object
 **
 ** Notes:
-**   1. This must be classed prior to any other member functions.
+**   1. This must be called prior to any other member functions.
+**   2. The Subscription calls must be made after MQTT_CLIENT and MSG_TRANS
+**      have been initialized.
 **
 */
 void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
@@ -75,7 +76,7 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
 
    MSG_TRANS_Constructor(&MqttMgr->MsgTrans, IniTbl, TblMgr);
 
-   SubscribeToMessages(INITBL_GetIntConfig(IniTbl, CFG_MQTT_GW_TOPIC_1_TLM_TOPICID));
+   SubscribeToTopicMessages(INITBL_GetIntConfig(IniTbl, CFG_MQTT_GW_TOPIC_1_TLM_TOPICID));
       
 } /* End MQTT_MGR_Constructor() */
 
@@ -267,10 +268,10 @@ static void ProcessSbTopicMsgs(uint32 PerfId)
 ** Function: SubscribeToMessages
 **
 ** Subscribe to topic messages on the SB and MQTT_CLIENT based on a topics
-** defition in the topic table.
+** definition in the topic table.
 **
 */
-static void SubscribeToMessages(uint32 TopicBaseMid)
+static void SubscribeToTopicMessages(uint32 TopicBaseMid)
 {
 
    uint16 i;
@@ -323,4 +324,5 @@ static void SubscribeToMessages(uint32 TopicBaseMid)
                      SbSubscribeCnt, MqttSubscribeCnt, SubscribeErr);
  
 } /* End SubscribeToMessages() */
+
 

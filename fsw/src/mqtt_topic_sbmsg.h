@@ -45,9 +45,7 @@
 */
 
 #define MQTT_TOPIC_SBMSG_INIT_SB_MSG_TEST_EID  (MQTT_TOPIC_SBMSG_BASE_EID + 0)
-#define MQTT_TOPIC_SBMSG_SB_MSG_TEST_EID       (MQTT_TOPIC_SBMSG_BASE_EID + 1)
-#define MQTT_TOPIC_SBMSG_LOAD_JSON_DATA_EID    (MQTT_TOPIC_SBMSG_BASE_EID + 2)
-#define MQTT_TOPIC_SBMSG_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_SBMSG_BASE_EID + 3)
+#define MQTT_TOPIC_SBMSG_HEX_DECODE_EID        (MQTT_TOPIC_SBMSG_BASE_EID + 1)
 
 /**********************/
 /** Type Definitions **/
@@ -68,8 +66,8 @@ typedef struct
    */
 
    uint16 DiscreteTlmMsgLen;
-   MQTT_GW_SbMsgTlm_t     SbMsgTlmMsg;
-   MQTT_GW_DiscreteTlm_t  DiscreteTlmMsg;
+   KIT_TO_WrappedSbMsgTlm_t  MqttToSbWrapTlmMsg;
+   MQTT_GW_DiscreteTlm_t     DiscreteTlmMsg;
 
    /*
    ** MQTT message data
@@ -81,6 +79,8 @@ typedef struct
    uint32  CfeToMqttCnt;
    uint32  MqttToCfeCnt;
    
+   CFE_SB_MsgId_t  KitToSbWrapTlmMid;
+
    /*
    ** Use a discrete message for built in test
    */
@@ -102,11 +102,16 @@ typedef struct
 **
 ** Notes:
 **   1. The discrete telemetry message is used for the built in test.
+**   2. The first topic is assumed to be defined as the SB messages wrapped
+**      in an DB message. These messages are sent to an MQTT broker.
+**   2. DiscreteMidOffset is the offset from the topic base MID for the
+**      discrete MQTT topic that is used in SbMsg's test.
 **
 */
 void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
-                                 CFE_SB_MsgId_t SbMsgTlmMsgMid, 
-                                 CFE_SB_MsgId_t DiscreteTlmMsgMid, 
+                                 CFE_SB_MsgId_t TopicBaseMid, 
+                                 CFE_SB_MsgId_t DiscreteTlmMsgMid,
+                                 CFE_SB_MsgId_t WrapSbMsgMid,
                                  const char *Topic);
 
 

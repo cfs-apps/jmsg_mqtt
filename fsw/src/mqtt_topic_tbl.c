@@ -95,7 +95,8 @@ static MQTT_TOPIC_TBL_VirtualFunc_t VirtualFunc[] =
 **
 */
 void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, 
-                               const char *AppName, uint32 TopicBaseMid)
+                               const char *AppName, uint32 TopicBaseMid,
+                               uint32 WrapSbMsgMid)
 {
 
    uint8 i;
@@ -111,14 +112,18 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr,
       MqttTopicTbl->Data.Entry[i].Id = MQTT_TOPIC_TBL_UNUSED_ID;
    }
    
-   // TODO - Use topic definition from table in constructors
+   // TODO - Use topic definition from table in constructors and define order in one place, EDS enum?
+   
    MQTT_TOPIC_SBMSG_Constructor(&MqttTopicTbl->SbMsg, 
-                                CFE_SB_ValueToMsgId(TopicBaseMid),
-                                CFE_SB_ValueToMsgId(TopicBaseMid+1),
+                                CFE_SB_ValueToMsgId(TopicBaseMid),  
+                                CFE_SB_ValueToMsgId(TopicBaseMid+1), // Discrete MID 
+                                CFE_SB_ValueToMsgId(WrapSbMsgMid),
                                 "basecamp/sbmsg");
+                                
    MQTT_TOPIC_DISCRETE_Constructor(&MqttTopicTbl->Discrete, 
                                    CFE_SB_ValueToMsgId(TopicBaseMid+1),
                                    "basecamp/discrete");
+                                   
    MQTT_TOPIC_RATE_Constructor(&MqttTopicTbl->Rate, 
                                CFE_SB_ValueToMsgId(TopicBaseMid+2),
                                "basecamp/rate");

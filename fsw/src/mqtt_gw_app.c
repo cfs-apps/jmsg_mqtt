@@ -189,11 +189,11 @@ static int32 InitApp(void)
       /* Pool for a command every 2 seconds */
       MqttGw.PollCmdInterval = 2000 / INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_PEND_TIME);
       MqttGw.PollCmdCnt = 0;
-      MqttGw.PerfId  = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);
+      MqttGw.PerfId = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);
       CFE_ES_PerfLogEntry(MqttGw.PerfId);
 
-      MqttGw.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_CMD_TOPICID));
-      MqttGw.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_TLM_TOPICID));
+      MqttGw.CmdMid    = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_CMD_TOPICID));
+      MqttGw.SendHkMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_TLM_TOPICID));
    
       RetStatus = CFE_SUCCESS;
    

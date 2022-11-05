@@ -16,6 +16,7 @@
 
       "MQTT_GW_HK_TLM_TOPICID"     : 0,
       "MQTT_GW_TOPIC_1_TLM_TOPICID": 0,
+      "KIT_TO_SB_WRAP_TO_UDP_TLM_TOPICID": 0,      
       
       "CMD_PIPE_NAME":  "MQTT_CMD_PIPE",
       "CMD_PIPE_DEPTH": 5,

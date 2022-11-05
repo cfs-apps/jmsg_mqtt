@@ -53,9 +53,10 @@ static MQTT_TOPIC_SBMSG_Class_t* MqttTopicSbMsg = NULL;
 **
 */
 void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
-                                 CFE_SB_MsgId_t SbMsgTlmMsgMid, 
-                                 CFE_SB_MsgId_t DiscreteTlmMsgMid, 
-                                 const char *Topic)
+                                  CFE_SB_MsgId_t TopicBaseMid, 
+                                  CFE_SB_MsgId_t DiscreteTlmMsgMid,
+                                  CFE_SB_MsgId_t WrapSbMsgMid,
+                                  const char *Topic)
 {
 
    MqttTopicSbMsg = MqttTopicSbMsgPtr;
@@ -65,8 +66,8 @@ void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
    
    MqttTopicSbMsg->DiscreteTlmMsgLen = sizeof(MQTT_GW_DiscreteTlm_t);
 
-   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->SbMsgTlmMsg),    SbMsgTlmMsgMid,    sizeof(MQTT_GW_SbMsgTlm_t));
-   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->DiscreteTlmMsg), DiscreteTlmMsgMid, MqttTopicSbMsg->DiscreteTlmMsgLen);
+   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg), WrapSbMsgMid,   sizeof(KIT_TO_WrappedSbMsgTlm_t));
+   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->DiscreteTlmMsg),     DiscreteTlmMsgMid, MqttTopicSbMsg->DiscreteTlmMsgLen);
       
 } /* End MQTT_TOPIC_SBMSG_Constructor() */
 
@@ -85,7 +86,7 @@ bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgTopic, const char **JsonMsgP
    bool  RetStatus = false;
    CFE_Status_t   CfeStatus;
    CFE_MSG_Size_t MsgSize;
-   const MQTT_GW_SbMsgTlm_Payload_t *PayloadSbMsg = CMDMGR_PAYLOAD_PTR(CfeMsg, MQTT_GW_SbMsgTlm_t);
+   const KIT_TO_WrappedSbMsgTlm_Payload_t *PayloadSbMsg = CMDMGR_PAYLOAD_PTR(CfeMsg, KIT_TO_WrappedSbMsgTlm_t);
    
    *JsonMsgTopic   = MqttTopicSbMsg->MqttMsgTopic;
    *JsonMsgPayload = MqttTopicSbMsg->MqttMsgPayload;
@@ -110,8 +111,9 @@ bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgTopic, const char **JsonMsgP
 ** Function: MQTT_TOPIC_SBMSG_MqttToCfe
 **
 ** Normally this function would convert a JSON topic message to a cFS SB
-** message. In this case the MQTT payload is a SB message so a pointer to
-** the MQTT payload is returned as the cFE SB message buffer.
+** message. In this case the MQTT payload is a SB message. The SB message
+** is decoded and copied into an SB message and sent to TO that expects a
+** wrapped message.
 **
 ** Encoded Discrete message that can be pasted into HiveMQ:
 **    0001690003000000110000007C460F007472000000000001
@@ -124,12 +126,24 @@ bool MQTT_TOPIC_SBMSG_MqttToCfe(CFE_MSG_Message_t **CfeMsg,
 {
    
    bool RetStatus = false;
-
-   if (PktUtil_HexDecode((uint8 *)MqttTopicSbMsg->MqttMsgPayload, JsonMsgPayload) > 0)
+   KIT_TO_WrappedSbMsgTlm_Payload_t *SbMsgPayload = &(MqttTopicSbMsg->MqttToSbWrapTlmMsg.Payload);
+   size_t DecodedLen;
+   
+   DecodedLen = PktUtil_HexDecode((uint8 *)SbMsgPayload, JsonMsgPayload, PayloadLen);
+   if (DecodedLen > 0)
    {
-      *CfeMsg = (CFE_MSG_Message_t *)MqttTopicSbMsg->MqttMsgPayload;
+      CFE_EVS_SendEvent(MQTT_TOPIC_SBMSG_HEX_DECODE_EID, CFE_EVS_EventType_ERROR,
+                        "MQTT message successfully decoded. MQTT len = %d, Decoded len = %d",
+                        (uint16)PayloadLen, (uint16)DecodedLen);
+      *CfeMsg = CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg);
       MqttTopicSbMsg->MqttToCfeCnt++;
       RetStatus = true;
+   }
+   else
+   {
+      CFE_EVS_SendEvent(MQTT_TOPIC_SBMSG_HEX_DECODE_EID, CFE_EVS_EventType_ERROR,
+                        "MQTT message decode failed. MQTT len = %d, Decoded len = %d",
+                        (uint16)PayloadLen, (uint16)DecodedLen);
    }
    
    return RetStatus;
@@ -187,11 +201,12 @@ void MQTT_TOPIC_SBMSG_SbMsgTest(bool Init, int16 Param)
          
       } /* End axis switch */
    }
-      
+   
+   // Wrap discrete message in an SbMsg
    CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttTopicSbMsg->DiscreteTlmMsg.TelemetryHeader));   
-   memcpy(&MqttTopicSbMsg->SbMsgTlmMsg.Payload, &MqttTopicSbMsg->DiscreteTlmMsg, MqttTopicSbMsg->DiscreteTlmMsgLen);
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttTopicSbMsg->SbMsgTlmMsg.TelemetryHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttTopicSbMsg->SbMsgTlmMsg.TelemetryHeader), true);
+   memcpy(&MqttTopicSbMsg->MqttToSbWrapTlmMsg.Payload, &MqttTopicSbMsg->DiscreteTlmMsg, MqttTopicSbMsg->DiscreteTlmMsgLen);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg.TelemetryHeader), true);
    
 } /* End MQTT_TOPIC_SBMSG_SbMsgTest() */
 

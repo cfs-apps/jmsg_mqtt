@@ -178,7 +178,8 @@ typedef struct
 **
 */
 void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *TopicMgrPtr,
-                                const char *AppName, uint32 TopicBaseMid);
+                                const char *AppName, uint32 TopicBaseMid,
+                                uint32 WrapSbMsgMid);
 
 
 /******************************************************************************

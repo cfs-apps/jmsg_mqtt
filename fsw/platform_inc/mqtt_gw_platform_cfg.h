@@ -16,7 +16,9 @@
 **    Define platform configurations for the OSK MQTT Gateway application
 **
 **  Notes:
-**    None
+**    1. The MQTT_GW_TOPIC_LEN definition is based on KIT_TO's definition
+**       of the maximum SB message that can be wrapped. The wrpped messages
+**       are expected to come from MQTT_GW.
 **
 **  References:
 **    1. OpenSatKit Object-based Application Developer's Guide.
@@ -32,6 +34,7 @@
 */
 
 #include "mqtt_gw_mission_cfg.h"
+#include "kit_to_eds_defines.h"
 
 /******************************************************************************
 ** Platform Deployment Configurations
@@ -49,7 +52,7 @@
 /*
 ** mqtt topic string length
 */
-#define MQTT_GW_TOPIC_LEN          100
+#define MQTT_GW_TOPIC_LEN  KIT_TO_MAX_WRAPPED_SB_MSG_LEN
 
 
 #endif /* _mqtt_gw_platform_cfg_ */

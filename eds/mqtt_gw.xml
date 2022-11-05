@@ -20,12 +20,15 @@
 
     Notes:
       1. This document adheres to the Electronic Data Sheet (EDS) XML schema 
-         as prescribed in CCSDS book 876.0. 
+         as prescribed in CCSDS book 876.0.
+      2. This uses KIT_TO's definitions for SB messages that are wrapped.
+         The LOCAL_IN and REMOTE_OUT definitions mirror MQTT_GW's 
+         LOCAL_OUT and REMOTE_IN definitions. 
+         
 
 -->
 <PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
   <Package name="MQTT_GW" shortDescription="OpenSatKit MQTT application">
-    <Define name="SB_MSG_MAX_LEN" value="4096"  shortDescription="Used to size buffer for SbMsg translator" />
     <DataTypeSet>
 
       <!--***********************************-->
@@ -48,8 +51,6 @@
           <Enumeration label="Stop"  value="2" shortDescription="Stop a test" />
         </EnumerationList>
       </EnumeratedDataType>
-
-      <StringDataType name="SbMsgBuffer" length="${SB_MSG_MAX_LEN}" shortDescription="" />
 
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
@@ -109,12 +110,6 @@
           <Entry name="SbTopicTestActive"   type="OSK_C_FW/BooleanUint8" />
           <Entry name="SbTopicTestId"       type="BASE_TYPES/uint16"   />
           <Entry name="SbTopicTestParam"    type="BASE_TYPES/int16"    />
-        </EntryList>
-      </ContainerDataType>
-
-      <ContainerDataType name="SbMsgTlm_Payload" shortDescription="Contains other SB messages">
-        <EntryList>
-          <Entry name="Data"  type="SbMsgBuffer"  shortDescription="The data is another SB message" />
         </EntryList>
       </ContainerDataType>
 
@@ -200,12 +195,6 @@
         </EntryList>
       </ContainerDataType>
      
-      <ContainerDataType name="SbMsgTlm" baseType="CFE_HDR/TelemetryHeader">
-        <EntryList>
-          <Entry type="SbMsgTlm_Payload" name="Payload" />
-        </EntryList>
-      </ContainerDataType>
-
       <ContainerDataType name="DiscreteTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
           <Entry type="DiscreteTlm_Payload" name="Payload" />
@@ -241,9 +230,9 @@
             </GenericTypeMapSet>
           </Interface>
 
-          <Interface name="SBMSG_TLM" shortDescription="Software bus wrapper telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="SB_WRAP_TO_MQTT_TLM" shortDescription="Messages from SB that are wrapped and sent to MQTT broker" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="SbMsgTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="KIT_TO/WrappedSbMsgTlm" />
             </GenericTypeMapSet>
           </Interface>
 
@@ -267,19 +256,19 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"         initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"       initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SbMsgTlmTopicId"    initialValue="${CFE_MISSION/MQTT_GW_TOPIC_1_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscreteTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_2_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RateTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_TOPIC_3_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"             initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"           initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SbWrapToMqttTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_1_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscreteTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_TOPIC_2_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RateTlmTopicId"         initialValue="${CFE_MISSION/MQTT_GW_TOPIC_3_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
-            <ParameterMap interface="CMD"          parameter="TopicId" variableRef="CmdTopicId" />
-            <ParameterMap interface="HK_TLM"       parameter="TopicId" variableRef="HkTlmTopicId" />
-            <ParameterMap interface="SBMSG_TLM"    parameter="TopicId" variableRef="SbMsgTlmTopicId" />
-            <ParameterMap interface="DISCRETE_TLM" parameter="TopicId" variableRef="DiscreteTlmTopicId" />
-            <ParameterMap interface="RATE_TLM"     parameter="TopicId" variableRef="RateTlmTopicId" />
+            <ParameterMap interface="CMD"                 parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="HK_TLM"              parameter="TopicId" variableRef="HkTlmTopicId" />
+            <ParameterMap interface="SB_WRAP_TO_MQTT_TLM" parameter="TopicId" variableRef="SbWrapToMqttTlmTopicId" />
+            <ParameterMap interface="DISCRETE_TLM"        parameter="TopicId" variableRef="DiscreteTlmTopicId" />
+            <ParameterMap interface="RATE_TLM"            parameter="TopicId" variableRef="RateTlmTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>
