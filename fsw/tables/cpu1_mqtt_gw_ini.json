@@ -1,9 +1,7 @@
 {
    "title": "MQTT initialization file",
    "description": [ "Define runtime configurations",
-                    "APP_CFE_NAME, TBL_CFE_NAME: Must match mqtt_platform_cfg.h definitions",
-                    "TBL_ERR_CODE: 3,472,883,840 = 0xCF000080. See cfe_error.h for field descriptions",
-                    "SEND_HK_MID: 8177(0x1FF1) is temporary during development. Change t 0x1F51(8017) of add to startup & scheduler"],
+                    "broker.emqx.io is used by https://spacesteps.com/mqtt_receive"],
    "config": {
       
       "APP_CFE_NAME": "MQTT",
@@ -25,10 +23,9 @@
       "TOPIC_PIPE_DEPTH":     20,
       "TOPIC_PIPE_PEND_TIME": 250,
 
-      "MQTT_BROKER_PORT~":    8084,
       "MQTT_BROKER_PORT":     1883,
-      "MQTT_BROKER_ADDRESS~":  "broker.emqx.io",
-      "MQTT_BROKER_ADDRESS":  "broker.hivemq.com",
+      "MQTT_BROKER_ADDRESS":  "broker.emqx.io",
+      "MQTT_BROKER_ADDRESS~": "broker.hivemq.com",
       "MQTT_BROKER_USERNAME": "UNDEF",
       "MQTT_BROKER_PASSWORD": "UNDEF",
       
