@@ -91,9 +91,9 @@ typedef struct
    float                       TestAxisRate;
    
    /*
-   ** Subset of the standard CJSON table data because this isn't using the OSK
-   ** table manager service, but is using core-json in the same way as an OSK
-   ** table.
+   ** Subset of the standard CJSON table data because this isn't using the
+   ** app_c_fw table manager service, but is using core-json in the same way
+   ** as an app_c_fw managed table.
    */
    size_t  JsonObjCnt;
 

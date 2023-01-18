@@ -111,7 +111,7 @@ typedef MQTT_TOPIC_TBL_Data_t* (*MQTT_TOPIC_TBL_GetDataPtr_t)(void);
 ** Topic 'virtual' function signatures
 ** - Using separate MQTT_TOPIC_xxx files for each topic type and this table
 **   below is mimicing an abstract base class with inheritance design
-** - Naming it MQTT_TOPIC_TBL_VirtualFunc_t complies with the naming OSK naming
+** - Naming it MQTT_TOPIC_TBL_VirtualFunc_t complies with the app_c_fw naming 
 **   standard, but it's a little misleading because the MQTT_TOPIC_xxx objects
 **   are not designed as subclasses of MQTT_TOPIC_TBL.
 */

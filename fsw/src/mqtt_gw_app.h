@@ -91,7 +91,7 @@ typedef struct
 
    
    /*
-   ** OSK_C_DEMO State & Contained Objects
+   ** MQTT_GW State & Contained Objects
    */ 
    
    uint32 PollCmdInterval;

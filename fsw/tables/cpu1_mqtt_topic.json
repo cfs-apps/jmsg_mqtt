@@ -11,27 +11,27 @@
    
    "topic": [
        {
-          "name": "basecamp/sbmsg",
+          "name": "basecamp/demo/sbmsg",
           "id": 99,
           "sb-role": "sub"
        },
        {
-          "name": "basecamp/discrete",
+          "name": "basecamp/demo/discrete",
           "id": 1,
           "sb-role": "pub"
        },
        {
-          "name": "basecamp/rate",
+          "name": "basecamp/demo/rate",
           "id": 2,
           "sb-role": "sub"
        },
        {
-          "name": "basecamp/pvt",
+          "name": "basecamp/demo/pvt",
           "id": 99,
           "sb-role": "tbd"
        },
        {
-          "name": "basecamp/tbd",
+          "name": "basecamp/demo/tbd",
           "id": 99,
           "sb-role": "tbd"
        }

@@ -27,7 +27,7 @@
       "tables": ["mqtt_gw_ini.json","mqtt_topic.json"]
    },
 
-   "requires": ["osk_c_fw", "mqtt_lib"]
+   "requires": ["app_c_fw", "mqtt_lib"]
 
 }}
 

@@ -13,7 +13,7 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Define platform configurations for the OSK MQTT Gateway application
+**   Define platform configurations for the MQTT Gateway application
 **
 ** Notes:
 **   1. These macros can only be build with the application and can't
@@ -38,7 +38,7 @@
 
 #include "mqtt_gw_eds_typedefs.h"
 #include "mqtt_gw_platform_cfg.h"
-#include "osk_c_fw.h"
+#include "app_c_fw.h"
 
 
 /******************************************************************************
@@ -157,14 +157,14 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** exceeded so it is the developer's responsibility to verify the ranges. 
 */
 
-#define MQTT_GW_BASE_EID              (OSK_C_FW_APP_BASE_EID +  0)
-#define MQTT_MGR_BASE_EID             (OSK_C_FW_APP_BASE_EID + 20)
-#define MQTT_CLIENT_BASE_EID          (OSK_C_FW_APP_BASE_EID + 40)
-#define MSG_TRANS_BASE_EID            (OSK_C_FW_APP_BASE_EID + 60)
-#define MQTT_TOPIC_TBL_BASE_EID       (OSK_C_FW_APP_BASE_EID + 80)
-#define MQTT_TOPIC_SBMSG_BASE_EID     (OSK_C_FW_APP_BASE_EID + 90)
-#define MQTT_TOPIC_DISCRETE_BASE_EID  (OSK_C_FW_APP_BASE_EID + 100)
-#define MQTT_TOPIC_RATE_BASE_EID      (OSK_C_FW_APP_BASE_EID + 110)
+#define MQTT_GW_BASE_EID              (APP_C_FW_APP_BASE_EID +  0)
+#define MQTT_MGR_BASE_EID             (APP_C_FW_APP_BASE_EID + 20)
+#define MQTT_CLIENT_BASE_EID          (APP_C_FW_APP_BASE_EID + 40)
+#define MSG_TRANS_BASE_EID            (APP_C_FW_APP_BASE_EID + 60)
+#define MQTT_TOPIC_TBL_BASE_EID       (APP_C_FW_APP_BASE_EID + 80)
+#define MQTT_TOPIC_SBMSG_BASE_EID     (APP_C_FW_APP_BASE_EID + 90)
+#define MQTT_TOPIC_DISCRETE_BASE_EID  (APP_C_FW_APP_BASE_EID + 100)
+#define MQTT_TOPIC_RATE_BASE_EID      (APP_C_FW_APP_BASE_EID + 110)
 
 /******************************************************************************
 ** MQTT Client

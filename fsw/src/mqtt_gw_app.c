@@ -174,7 +174,7 @@ bool MQTT_GW_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 static int32 InitApp(void)
 {
 
-   int32 RetStatus = OSK_C_FW_CFS_ERROR;
+   int32 RetStatus = APP_C_FW_CFS_ERROR;
    
    CHILDMGR_TaskInit_t ChildTaskInit;
 
@@ -285,7 +285,7 @@ static int32 ProcessCommands(void)
          else
          {   
             CFE_EVS_SendEvent(MQTT_GW_INVALID_MID_EID, CFE_EVS_EventType_ERROR,
-                              "Received invalid command packet, MID = 0x%08X", 
+                              "Received invalid command packet, MID = 0x%04X", 
                               CFE_SB_MsgIdToValue(MsgId));
          }
 
@@ -333,7 +333,7 @@ void SendHousekeepingPkt(void)
 
    Payload->LastTblAction  = LastTbl->LastAction;
    Payload->TopicTblLoaded = MqttGw.MqttMgr.MsgTrans.TopicTbl.Loaded;
-   //OskCDemo.HkPkt.LastTblActionStatus = LastTbl->LastActionStatus;
+   //AppCDemo.HkPkt.LastTblActionStatus = LastTbl->LastActionStatus;
    
    /*
    ** MQTT Data

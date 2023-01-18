@@ -13,7 +13,7 @@
 ** GNU Affero General Public License for more details.
 **
 **  Purpose:
-**    Define platform configurations for the OSK MQTT Gateway application
+**    Define platform configurations for the MQTT Gateway application
 **
 **  Notes:
 **    1. The MQTT_GW_TOPIC_LEN definition is based on KIT_TO's definition
