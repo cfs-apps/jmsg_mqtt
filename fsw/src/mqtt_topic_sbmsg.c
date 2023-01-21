@@ -49,25 +49,22 @@ static MQTT_TOPIC_SBMSG_Class_t* MqttTopicSbMsg = NULL;
 ** Initialize the MQTT SB Message topic
 **
 ** Notes:
-**   1. The discrete telemetry message is used for the built in test.
+**   1. The integer telemetry message is used for the built in test.
 **
 */
 void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
                                   CFE_SB_MsgId_t TopicBaseMid, 
-                                  CFE_SB_MsgId_t DiscreteTlmMsgMid,
-                                  CFE_SB_MsgId_t WrapSbMsgMid,
-                                  const char *Topic)
+                                  CFE_SB_MsgId_t IntegerTlmMsgMid,
+                                  CFE_SB_MsgId_t WrapSbMsgMid)
 {
 
    MqttTopicSbMsg = MqttTopicSbMsgPtr;
    memset(MqttTopicSbMsg, 0, sizeof(MQTT_TOPIC_SBMSG_Class_t));
 
-   strncpy(MqttTopicSbMsg->MqttMsgTopic, Topic, MQTT_TOPIC_TBL_MAX_TOPIC_LEN);
-   
-   MqttTopicSbMsg->DiscreteTlmMsgLen = sizeof(MQTT_GW_DiscreteTlm_t);
-
-   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg), WrapSbMsgMid,   sizeof(KIT_TO_WrappedSbMsgTlm_t));
-   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->DiscreteTlmMsg),     DiscreteTlmMsgMid, MqttTopicSbMsg->DiscreteTlmMsgLen);
+   MqttTopicSbMsg->IntegerTlmMsgLen = sizeof(MQTT_GW_IntegerTlm_t);
+OS_printf("WrapSbMsgMid %d\n",CFE_SB_MsgIdToValue(WrapSbMsgMid));
+   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg), WrapSbMsgMid,     sizeof(KIT_TO_WrappedSbMsgTlm_t));
+   CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->IntegerTlmMsg),      IntegerTlmMsgMid, MqttTopicSbMsg->IntegerTlmMsgLen);
       
 } /* End MQTT_TOPIC_SBMSG_Constructor() */
 
@@ -79,7 +76,7 @@ void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
 ** In this case the SB message is the MQTT payload.
 **
 */
-bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgTopic, const char **JsonMsgPayload,
+bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgPayload,
                                 const CFE_MSG_Message_t *CfeMsg)
 {
 
@@ -88,7 +85,6 @@ bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgTopic, const char **JsonMsgP
    CFE_MSG_Size_t MsgSize;
    const KIT_TO_WrappedSbMsgTlm_Payload_t *PayloadSbMsg = CMDMGR_PAYLOAD_PTR(CfeMsg, KIT_TO_WrappedSbMsgTlm_t);
    
-   *JsonMsgTopic   = MqttTopicSbMsg->MqttMsgTopic;
    *JsonMsgPayload = MqttTopicSbMsg->MqttMsgPayload;
 
    CfeStatus = CFE_MSG_GetSize((CFE_MSG_Message_t *)PayloadSbMsg, &MsgSize);
@@ -115,11 +111,12 @@ bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgTopic, const char **JsonMsgP
 ** is decoded and copied into an SB message and sent to TO that expects a
 ** wrapped message.
 **
-** Encoded Discrete message that can be pasted into HiveMQ:
-**    0001690003000000110000007C460F007472000000000001
-**    0001690003000000110000004F460F008759000000000100
-**    0001690003000000110000004F460F003B19000000010000
-**    0001690003000000110000004F460F003B19000001000000
+** Encoded Integer message that can be pasted into HiveMQ:
+**    00016B00030049001D0000005A890F00FB99000001000000000000000000000000000000
+**    00016B00030048001D0000005A890F007D59000000000000000000000000000001000000
+**    00016B00030047001D0000005A890F002A19000000000000000000000100000000000000
+**    00016B00030046001D00000059890F001A9A000000000000010000000000000000000000
+**
 */
 bool MQTT_TOPIC_SBMSG_MqttToCfe(CFE_MSG_Message_t **CfeMsg, 
                                const char *JsonMsgPayload, uint16 PayloadLen)
@@ -157,16 +154,18 @@ bool MQTT_TOPIC_SBMSG_MqttToCfe(CFE_MSG_Message_t **CfeMsg,
 ** Send a MQTT_GW discrere SB message
 **
 ** Notes:
-**   1. A walking bit pattern is used to help validation.
+**   1. Kit-to's packet table entry for MQTT_GW_TOPIC_2_TLM_TOPICID must have
+**      the forward attribute set to true.
+**   2. A walking bit pattern is used to help validation.
 **
 */
 void MQTT_TOPIC_SBMSG_SbMsgTest(bool Init, int16 Param)
 {
    
-   MQTT_GW_DiscreteTlm_Payload_t *Payload = &MqttTopicSbMsg->DiscreteTlmMsg.Payload;
-   uint8 DiscreteItem;
+   MQTT_GW_IntegerTlm_Payload_t *Payload = &MqttTopicSbMsg->IntegerTlmMsg.Payload;
+   uint8 IntegerItem;
     
-   memset(Payload, 0, sizeof(MQTT_GW_DiscreteTlm_Payload_t));
+   memset(Payload, 0, sizeof(MQTT_GW_IntegerTlm_Payload_t));
 
    if (Init)
    {
@@ -181,8 +180,8 @@ void MQTT_TOPIC_SBMSG_SbMsgTest(bool Init, int16 Param)
    
       MqttTopicSbMsg->SbTestCnt++;
       
-      DiscreteItem = MqttTopicSbMsg->SbTestCnt % 4;
-      switch (DiscreteItem)
+      IntegerItem = MqttTopicSbMsg->SbTestCnt % 4;
+      switch (IntegerItem)
       {
          case 0:
             Payload->Item_1 = 1;
@@ -202,11 +201,9 @@ void MQTT_TOPIC_SBMSG_SbMsgTest(bool Init, int16 Param)
       } /* End axis switch */
    }
    
-   // Wrap discrete message in an SbMsg
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttTopicSbMsg->DiscreteTlmMsg.TelemetryHeader));   
-   memcpy(&MqttTopicSbMsg->MqttToSbWrapTlmMsg.Payload, &MqttTopicSbMsg->DiscreteTlmMsg, MqttTopicSbMsg->DiscreteTlmMsgLen);
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg.TelemetryHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg.TelemetryHeader), true);
+   // Wrap integer message in an SbMsg
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttTopicSbMsg->IntegerTlmMsg.TelemetryHeader));   
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttTopicSbMsg->IntegerTlmMsg.TelemetryHeader), true);
    
 } /* End MQTT_TOPIC_SBMSG_SbMsgTest() */
 

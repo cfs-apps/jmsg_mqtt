@@ -13,7 +13,7 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Manage MQTT discrete topic
+**   Manage MQTT integer topic
 **
 ** Notes:
 **   None
@@ -24,8 +24,8 @@
 **
 */
 
-#ifndef _mqtt_topic_discrete_
-#define _mqtt_topic_discrete_
+#ifndef _mqtt_topic_integer_
+#define _mqtt_topic_integer_
 
 /*
 ** Includes
@@ -43,10 +43,10 @@
 ** Event Message IDs
 */
 
-#define MQTT_TOPIC_DISCRETE_INIT_SB_MSG_TEST_EID  (MQTT_TOPIC_DISCRETE_BASE_EID + 0)
-#define MQTT_TOPIC_DISCRETE_SB_MSG_TEST_EID       (MQTT_TOPIC_DISCRETE_BASE_EID + 1)
-#define MQTT_TOPIC_DISCRETE_LOAD_JSON_DATA_EID    (MQTT_TOPIC_DISCRETE_BASE_EID + 2)
-#define MQTT_TOPIC_DISCRETE_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_DISCRETE_BASE_EID + 3)
+#define MQTT_TOPIC_INTEGER_INIT_SB_MSG_TEST_EID  (MQTT_TOPIC_INTEGER_BASE_EID + 0)
+#define MQTT_TOPIC_INTEGER_SB_MSG_TEST_EID       (MQTT_TOPIC_INTEGER_BASE_EID + 1)
+#define MQTT_TOPIC_INTEGER_LOAD_JSON_DATA_EID    (MQTT_TOPIC_INTEGER_BASE_EID + 2)
+#define MQTT_TOPIC_INTEGER_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_INTEGER_BASE_EID + 3)
 
 /**********************/
 /** Type Definitions **/
@@ -56,7 +56,7 @@
 /******************************************************************************
 ** Telemetry
 ** 
-** MQTT_GW_DiscreteTlm_t & MQTT_GW_DiscreteTlm_Payload_t defined in EDS
+** MQTT_GW_IntegerTlm_t & MQTT_GW_IntegerTlm_Payload_t defined in EDS
 */
 
 
@@ -65,15 +65,14 @@ typedef struct
 {
 
    /*
-   ** Discrete Telemetry
+   ** Integer Telemetry
    */
    
-   MQTT_GW_DiscreteTlm_t  TlmMsg;
-   char  JsonMsgTopic[MQTT_TOPIC_TBL_MAX_TOPIC_LEN];
-   char  JsonMsgPayload[1024];
+   MQTT_GW_IntegerTlm_t  TlmMsg;
+   char                  JsonMsgPayload[1024];
 
    /*
-   ** SB test treats the 4 discretes as a 4-bit integer that is incremented 
+   ** SB test treats the 4 integers as a 4-bit integer that is incremented 
    ** from 0..15 
    */
    
@@ -90,7 +89,7 @@ typedef struct
    uint32  JsonToCfeCnt;
    
    
-} MQTT_TOPIC_DISCRETE_Class_t;
+} MQTT_TOPIC_INTEGER_Class_t;
 
 
 /************************/
@@ -99,49 +98,49 @@ typedef struct
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_DISCRETE_Constructor
+** Function: MQTT_TOPIC_INTEGER_Constructor
 **
-** Initialize the MQTT discrete topic
+** Initialize the MQTT integer topic
 **
 ** Notes:
 **   None
 **
 */
-void MQTT_TOPIC_DISCRETE_Constructor(MQTT_TOPIC_DISCRETE_Class_t *MqttTopicDiscretePtr,
-                                     CFE_SB_MsgId_t TlmMsgMid, const char *Topic);
+void MQTT_TOPIC_INTEGER_Constructor(MQTT_TOPIC_INTEGER_Class_t *MqttTopicIntegerPtr,
+                                    CFE_SB_MsgId_t TlmMsgMid);
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_DISCRETE_CfeToJson
+** Function: MQTT_TOPIC_INTEGER_CfeToJson
 **
-** Convert a cFE discrete message to a JSON topic message 
+** Convert a cFE integer message to a JSON topic message 
 **
 ** Notes:
 **   1.  Signature must match MQTT_TOPIC_TBL_CfeToJson_t
 */
-bool MQTT_TOPIC_DISCRETE_CfeToJson(const char **JsonMsgTopic, const char **JsonMsgPayload,
-                                   const CFE_MSG_Message_t *CfeMsg);
+bool MQTT_TOPIC_INTEGER_CfeToJson(const char **JsonMsgPayload,
+                                  const CFE_MSG_Message_t *CfeMsg);
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_DISCRETE_JsonToCfe
+** Function: MQTT_TOPIC_INTEGER_JsonToCfe
 **
-** Convert a JSON discrete topic message to a cFE discrete message 
+** Convert a JSON integer topic message to a cFE integer message 
 **
 ** Notes:
 **   1.  Signature must match MQTT_TOPIC_TBL_JsonToCfe_t
 */
-bool MQTT_TOPIC_DISCRETE_JsonToCfe(CFE_MSG_Message_t **CfeMsg, 
-                                   const char *JsonMsgPayload, uint16 PayloadLen);
+bool MQTT_TOPIC_INTEGER_JsonToCfe(CFE_MSG_Message_t **CfeMsg, 
+                                  const char *JsonMsgPayload, uint16 PayloadLen);
 
 /******************************************************************************
-** Function: MQTT_TOPIC_DISCRETE_SbMsgTest
+** Function: MQTT_TOPIC_INTEGER_SbMsgTest
 **
-** Generate and send SB discrete topic messages on SB that are read back by MQTT_GW
+** Generate and send SB integer topic messages on SB that are read back by MQTT_GW
 ** and cause MQTT messages to be generated from the SB messages.  
 **
 */
-void MQTT_TOPIC_DISCRETE_SbMsgTest(bool Init, int16 Param);
+void MQTT_TOPIC_INTEGER_SbMsgTest(bool Init, int16 Param);
 
 
-#endif /* _mqtt_topic_discrete_ */
+#endif /* _mqtt_topic_integer_ */

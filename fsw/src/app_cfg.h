@@ -163,8 +163,8 @@ DECLARE_ENUM(Config,APP_CONFIG)
 #define MSG_TRANS_BASE_EID            (APP_C_FW_APP_BASE_EID + 60)
 #define MQTT_TOPIC_TBL_BASE_EID       (APP_C_FW_APP_BASE_EID + 80)
 #define MQTT_TOPIC_SBMSG_BASE_EID     (APP_C_FW_APP_BASE_EID + 90)
-#define MQTT_TOPIC_DISCRETE_BASE_EID  (APP_C_FW_APP_BASE_EID + 100)
-#define MQTT_TOPIC_RATE_BASE_EID      (APP_C_FW_APP_BASE_EID + 110)
+#define MQTT_TOPIC_INTEGER_BASE_EID   (APP_C_FW_APP_BASE_EID + 100)
+#define MQTT_TOPIC_COORD_BASE_EID     (APP_C_FW_APP_BASE_EID + 110)
 
 /******************************************************************************
 ** MQTT Client

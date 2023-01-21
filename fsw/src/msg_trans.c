@@ -199,7 +199,9 @@ bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
    const char *JsonMsgTopic;
    const char *JsonMsgPayload;
 
-   
+   OS_printf(" MSG_TRANS_ProcessSbMsg()\n");
+   *Topic   = NULL; 
+   *Payload = NULL;
    SbStatus = CFE_MSG_GetMsgId(MsgPtr, &MsgId);
    if (SbStatus == CFE_SUCCESS)
    {
@@ -212,9 +214,9 @@ bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
       if (TopicId >= 0 && TopicId < MQTT_TOPIC_TBL_MAX_TOPICS)
       {
          
-         CfeToJson = MQTT_TOPIC_TBL_GetCfeToJson(TopicId);    
+         CfeToJson = MQTT_TOPIC_TBL_GetCfeToJson(TopicId, &JsonMsgTopic);    
          
-         if (CfeToJson(&JsonMsgTopic, &JsonMsgPayload, MsgPtr))
+         if (CfeToJson(&JsonMsgPayload, MsgPtr))
          {
             *Topic   = JsonMsgTopic; 
             *Payload = JsonMsgPayload;

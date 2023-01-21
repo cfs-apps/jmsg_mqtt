@@ -65,15 +65,14 @@ typedef struct
    ** Telemetry
    */
 
-   uint16 DiscreteTlmMsgLen;
+   uint16 IntegerTlmMsgLen;
    KIT_TO_WrappedSbMsgTlm_t  MqttToSbWrapTlmMsg;
-   MQTT_GW_DiscreteTlm_t     DiscreteTlmMsg;
+   MQTT_GW_IntegerTlm_t      IntegerTlmMsg;
 
    /*
    ** MQTT message data
    */
    
-   char  MqttMsgTopic[MQTT_TOPIC_TBL_MAX_TOPIC_LEN];
    char  MqttMsgPayload[MQTT_TOPIC_SB_MSG_MAX_LEN*2]; /* Endcoded hex is twice as long */
 
    uint32  CfeToMqttCnt;
@@ -82,7 +81,7 @@ typedef struct
    CFE_SB_MsgId_t  KitToSbWrapTlmMid;
 
    /*
-   ** Use a discrete message for built in test
+   ** Use an integer message for built in test
    */
    
    uint32 SbTestCnt;
@@ -101,18 +100,17 @@ typedef struct
 ** Initialize the MQTT SBMSG topic
 **
 ** Notes:
-**   1. The discrete telemetry message is used for the built in test.
+**   1. The integer telemetry message is used for the built in test.
 **   2. The first topic is assumed to be defined as the SB messages wrapped
 **      in an DB message. These messages are sent to an MQTT broker.
-**   2. DiscreteMidOffset is the offset from the topic base MID for the
-**      discrete MQTT topic that is used in SbMsg's test.
+**   3. IntegerMidOffset is the offset from the topic base MID for the
+**      integer MQTT topic that is used in SbMsg's test.
 **
 */
 void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
-                                 CFE_SB_MsgId_t TopicBaseMid, 
-                                 CFE_SB_MsgId_t DiscreteTlmMsgMid,
-                                 CFE_SB_MsgId_t WrapSbMsgMid,
-                                 const char *Topic);
+                                  CFE_SB_MsgId_t TopicBaseMid, 
+                                  CFE_SB_MsgId_t IntegerTlmMsgMid,
+                                  CFE_SB_MsgId_t WrapSbMsgMid);
 
 
 /******************************************************************************
@@ -124,7 +122,7 @@ void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
 **   1. Signature must match MQTT_TOPIC_TBL_CfeToJson_t
 **   2. This doesn't use JSON
 */
-bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgTopic, const char **JsonMsgPayload,
+bool MQTT_TOPIC_SBMSG_CfeToMqtt(const char **JsonMsgPayload,
                                 const CFE_MSG_Message_t *CfeMsg);
 
 
@@ -143,7 +141,7 @@ bool MQTT_TOPIC_SBMSG_MqttToCfe(CFE_MSG_Message_t **CfeMsg,
 /******************************************************************************
 ** Function: MQTT_TOPIC_SBMSG_SbMsgTest
 **
-** Generate and send MQTT_GW discrete topic messages on SB that are read back
+** Generate and send MQTT_GW integer messages on SB that are read back
 ** by MQTT_GW  and cause MQTT messages to be generated from the SB messages.  
 **
 */

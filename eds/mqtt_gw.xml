@@ -112,16 +112,16 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="DiscreteTlm_Payload" shortDescription="Generic discretes">
+      <ContainerDataType name="IntegerTlm_Payload" shortDescription="Generic integer items">
         <EntryList>
-          <Entry name="Item_1" type="BASE_TYPES/uint8"  />
-          <Entry name="Item_2" type="BASE_TYPES/uint8"  />
-          <Entry name="Item_3" type="BASE_TYPES/uint8"  />
-          <Entry name="Item_4" type="BASE_TYPES/uint8"  />
+          <Entry name="Item_1" type="BASE_TYPES/int32"  />
+          <Entry name="Item_2" type="BASE_TYPES/int32"  />
+          <Entry name="Item_3" type="BASE_TYPES/int32"  />
+          <Entry name="Item_4" type="BASE_TYPES/int32"  />
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="RateTlm_Payload" shortDescription="Spacecraft rates">
+      <ContainerDataType name="CoordTlm_Payload" shortDescription="3 axis coordinates">
         <EntryList>
           <Entry name="X" type="BASE_TYPES/float"  />
           <Entry name="Y" type="BASE_TYPES/float"  />
@@ -194,15 +194,15 @@
         </EntryList>
       </ContainerDataType>
      
-      <ContainerDataType name="DiscreteTlm" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="IntegerTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="DiscreteTlm_Payload" name="Payload" />
+          <Entry type="IntegerTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="RateTlm" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="CoordTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="RateTlm_Payload" name="Payload" />
+          <Entry type="CoordTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -235,15 +235,15 @@
             </GenericTypeMapSet>
           </Interface>
 
-          <Interface name="DISCRETE_TLM" shortDescription="Software bus discrete telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="DEMO_DISCRETE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="DiscreteTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="IntegerTlm" />
             </GenericTypeMapSet>
           </Interface>
 
-          <Interface name="RATE_TLM" shortDescription="Software bus rate telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="DEMO_RATE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="RateTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="CoordTlm" />
             </GenericTypeMapSet>
           </Interface>
 
@@ -258,16 +258,16 @@
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"             initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"           initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="SbWrapToMqttTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_1_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscreteTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_TOPIC_2_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RateTlmTopicId"         initialValue="${CFE_MISSION/MQTT_GW_TOPIC_3_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DemoDiscreteTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_2_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DemoRateTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_TOPIC_3_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
             <ParameterMap interface="CMD"                 parameter="TopicId" variableRef="CmdTopicId" />
             <ParameterMap interface="HK_TLM"              parameter="TopicId" variableRef="HkTlmTopicId" />
             <ParameterMap interface="SB_WRAP_TO_MQTT_TLM" parameter="TopicId" variableRef="SbWrapToMqttTlmTopicId" />
-            <ParameterMap interface="DISCRETE_TLM"        parameter="TopicId" variableRef="DiscreteTlmTopicId" />
-            <ParameterMap interface="RATE_TLM"            parameter="TopicId" variableRef="RateTlmTopicId" />
+            <ParameterMap interface="DEMO_DISCRETE_TLM"   parameter="TopicId" variableRef="DemoDiscreteTlmTopicId" />
+            <ParameterMap interface="DEMO_RATE_TLM"       parameter="TopicId" variableRef="DemoRateTlmTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

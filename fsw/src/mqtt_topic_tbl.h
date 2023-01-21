@@ -25,17 +25,18 @@
 **      configured when the EDS topic IDs are used.
 **   2. Steps to create a mqtt_topic_xxx translator:
 **      1. Create the translator object mqtt_topic_xxx
-**         See mqtt_topic_rate.h/c for an example
+**         See mqtt_topic_integer.h/c for an example
 **         Define CCSDS packet in mqtt_gw.xml EDS file
 **         Include a test function to generate CCSDS packets
 **      2. mqtt_topic_tbl.h:
 **         - Include the translator object header
 **         - Add the class/object declaration to MQTT_TOPIC_TBL_Class_t
 **      3. mqtt_topic_tbl.c:
-**         - Add the conversion functions to ConvertFunc[]
+**         - Add the conversion functions to VirtualFunc[]
 **         - In the constructor, add a call to the translator object's constructor 
 **      4. mqtt_gw.xml: 
 **         - Add topic definition
+**         - The EDS telemetry message types must match the JSOM topic oayload types 
 **      5. cpu1_mqtt_topic.json: 
 **         - Add topic definition
 **      6. Create/modify apps that generate CCSDS topic packets to
@@ -58,15 +59,13 @@
 
 #include "app_cfg.h"
 #include "mqtt_topic_sbmsg.h"
-#include "mqtt_topic_rate.h"
-#include "mqtt_topic_discrete.h"
+#include "mqtt_topic_coord.h"
+#include "mqtt_topic_integer.h"
 
 
 /***********************/
 /** Macro Definitions **/
 /***********************/
-
-#define MQTT_TOPIC_TBL_UNUSED_ID 99
 
 /*
 ** Event Message IDs
@@ -81,6 +80,15 @@
 /** Type Definitions **/
 /**********************/
 
+/* The non-null values are used as indices so they must start at zero */
+typedef enum
+{
+   MQTT_TOPIC_TBL_PAYLOAD_SB_MSG  =  0,
+   MQTT_TOPIC_TBL_PAYLOAD_INTEGER =  1,
+   MQTT_TOPIC_TBL_PAYLOAD_COORD   =  3,
+   MQTT_TOPIC_TBL_PAYLOAD_NULL    = 99,
+
+} MQTT_TOPIC_TBL_PAYLOAD_t;
 
 /******************************************************************************
 ** Table - Local table copy used for table loads
@@ -90,9 +98,9 @@
 typedef struct
 {
 
-   char  Name[OS_MAX_PATH_LEN];
-   uint8 Id;
-   char  SbRole[OS_MAX_PATH_LEN];
+   char   Name[OS_MAX_PATH_LEN];
+   uint16 Payload;
+   char   SbRole[OS_MAX_PATH_LEN];
 
 } MQTT_TOPIC_TBL_Entry_t;
 
@@ -109,15 +117,15 @@ typedef MQTT_TOPIC_TBL_Data_t* (*MQTT_TOPIC_TBL_GetDataPtr_t)(void);
 
 /******************************************************************************
 ** Topic 'virtual' function signatures
-** - Using separate MQTT_TOPIC_xxx files for each topic type and this table
-**   below is mimicing an abstract base class with inheritance design
-** - Naming it MQTT_TOPIC_TBL_VirtualFunc_t complies with the app_c_fw naming 
-**   standard, but it's a little misleading because the MQTT_TOPIC_xxx objects
-**   are not designed as subclasses of MQTT_TOPIC_TBL.
+** - Separate MQTT_TOPIC_xxx files are used for each topic payload type. The
+**   MQTT_TOPIC_TBL_PayloadFunc_t is used to hold pointers to each conversion
+**   function so you can think of a payload type as an abstract base class and
+**   each MQTT_TOPIC_xxx as concrete classes that provide the payload conversion
+**   methods.
 */
 
 typedef bool (*MQTT_TOPIC_TBL_JsonToCfe_t)(CFE_MSG_Message_t **CfeMsg, const char *JsonMsgPayload, uint16 PayloadLen);
-typedef bool (*MQTT_TOPIC_TBL_CfeToJson_t)(const char **JsonMsgTopic, const char **JsonMsgPayload, const CFE_MSG_Message_t *CfeMsg);
+typedef bool (*MQTT_TOPIC_TBL_CfeToJson_t)(const char **JsonMsgPayload, const CFE_MSG_Message_t *CfeMsg);
 typedef void (*MQTT_TOPIC_TBL_SbMsgTest_t)(bool Init, int16 Param);
 
 typedef struct
@@ -127,7 +135,7 @@ typedef struct
    MQTT_TOPIC_TBL_JsonToCfe_t  JsonToCfe;  
    MQTT_TOPIC_TBL_SbMsgTest_t  SbMsgTest;
 
-} MQTT_TOPIC_TBL_VirtualFunc_t; 
+} MQTT_TOPIC_TBL_PayloadFunc_t; 
 
 
 /******************************************************************************
@@ -143,8 +151,8 @@ typedef struct
    
    MQTT_TOPIC_TBL_Data_t       Data;
    MQTT_TOPIC_SBMSG_Class_t    SbMsg;
-   MQTT_TOPIC_DISCRETE_Class_t Discrete;
-   MQTT_TOPIC_RATE_Class_t     Rate;
+   MQTT_TOPIC_INTEGER_Class_t  Integer;
+   MQTT_TOPIC_COORD_Class_t    Coord;
    
    /*
    ** Standard CJSON table data
@@ -199,13 +207,15 @@ bool MQTT_TOPIC_TBL_DumpCmd(TBLMGR_Tbl_t *Tbl, uint8 DumpType, const char *Filen
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_GetCfeToJson
 **
-** Return a pointer to the CfeToJson conversion function for 'Idx'.
+** Return a pointer to the CfeToJson conversion function for 'Idx' and return
+** a pointer to the JSON topic string in JsonMsgTopic.
 ** 
 ** Notes:
 **   1. Idx must be less than MQTT_TOPIC_TBL_MAX_TOPICS
 **
 */
-MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Idx);
+MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Idx,
+                                                       const char **JsonMsgTopic);
 
 
 /******************************************************************************

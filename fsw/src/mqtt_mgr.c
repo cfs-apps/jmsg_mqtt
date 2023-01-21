@@ -287,12 +287,12 @@ static void SubscribeToTopicMessages(uint32 TopicBaseMid)
       TopicTblEntry = MQTT_TOPIC_TBL_GetEntry(i);
       if (TopicTblEntry != NULL)   
       {
-         if (TopicTblEntry->Id != MQTT_TOPIC_TBL_UNUSED_ID)
+         if (TopicTblEntry->Payload != MQTT_TOPIC_TBL_PAYLOAD_NULL)
          {
 
             if (strcmp(TopicTblEntry->SbRole,"sub") == 0)
             {
-
+OS_printf("Subscribed to %d\n",TopicBaseMid+i);
                ++SbSubscribeCnt;
                CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TopicBaseMid+i),
                                 MqttMgr->TopicPipe);
