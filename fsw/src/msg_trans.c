@@ -95,7 +95,7 @@ void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
    CFE_SB_MsgId_t    MsgId = CFE_SB_INVALID_MSG_ID;
    CFE_MSG_Size_t    MsgSize;
       
-   CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_INFORMATION,
+   CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                      "MSG_TRANS_ProcessMsg: Received topic %s", MsgData->topicName->lenstring.data);
                     
    if(MsgPtr->payloadlen)
