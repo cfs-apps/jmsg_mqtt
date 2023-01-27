@@ -292,7 +292,6 @@ static void SubscribeToTopicMessages(uint32 TopicBaseMid)
 
             if (strcmp(TopicTblEntry->SbRole,"sub") == 0)
             {
-OS_printf("Subscribed to %d\n",TopicBaseMid+i);
                ++SbSubscribeCnt;
                CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TopicBaseMid+i),
                                 MqttMgr->TopicPipe);

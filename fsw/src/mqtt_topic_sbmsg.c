@@ -62,7 +62,6 @@ void MQTT_TOPIC_SBMSG_Constructor(MQTT_TOPIC_SBMSG_Class_t *MqttTopicSbMsgPtr,
    memset(MqttTopicSbMsg, 0, sizeof(MQTT_TOPIC_SBMSG_Class_t));
 
    MqttTopicSbMsg->IntegerTlmMsgLen = sizeof(MQTT_GW_IntegerTlm_t);
-OS_printf("WrapSbMsgMid %d\n",CFE_SB_MsgIdToValue(WrapSbMsgMid));
    CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->MqttToSbWrapTlmMsg), WrapSbMsgMid,     sizeof(KIT_TO_WrappedSbMsgTlm_t));
    CFE_MSG_Init(CFE_MSG_PTR(MqttTopicSbMsg->IntegerTlmMsg),      IntegerTlmMsgMid, MqttTopicSbMsg->IntegerTlmMsgLen);
       
