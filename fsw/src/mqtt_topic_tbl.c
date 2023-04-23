@@ -13,15 +13,14 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Manage MQTT Manager''s table
+**   Manage MQTT Manager's table
 **
 ** Notes:
 **   1. Each supported MQTT topic is listed in a JSON file and each
 **      topic has a JSON file that defines the topics content.
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
+**   1. cFS Basecamp Object-based Application Developer's Guide
 **
 */
 
@@ -30,16 +29,13 @@
 */
 
 #include <string.h>
-#include "mqtt_topic_tbl.h"
+#include "mqtt_gw_topic_plugin.h"
 
 /************************************/
 /** Local File Function Prototypes **/
 /************************************/
 
 static bool LoadJsonData(size_t JsonFileLen);
-static bool StubCfeToJson(const char **JsonMsgPayload, const CFE_MSG_Message_t *CfeMsg);
-static bool StubJsonToCfe(CFE_MSG_Message_t **CfeMsg, const char *JsonMsgPayload, uint16 PayloadLen);
-static void StubSbMsgTest(bool Init, int16 Param);
 
 
 /**********************/
@@ -53,36 +49,45 @@ static MQTT_TOPIC_TBL_Data_t TblData; /* Working buffer for loads */
 static CJSON_Obj_t JsonTblObjs[] = 
 {
 
-   /* Table Data Address         Table Data Length  Updated, Data Type,  Float  core-json query string, length of query string(exclude '\0') */
+   /* Table                     Data                                            core-json             length of query       */
+   /* Data Address,             Len,                Updated, Data Type,  Float,  query string,         string(exclude '\0')  */
    
-   { &TblData.Entry[0].Name,     OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[0].name",       (sizeof("topic[0].name")-1)}    },
-   { &TblData.Entry[0].Payload,  2,                 false,   JSONNumber, false, { "topic[0].payload",    (sizeof("topic[0].payload")-1)} },
-   { &TblData.Entry[0].SbRole,   OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[0].sb-role",    (sizeof("topic[0].sb-role")-1)} },
-   { &TblData.Entry[1].Name,     OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[1].name",       (sizeof("topic[1].name")-1)}    },
-   { &TblData.Entry[1].Payload,  2,                 false,   JSONNumber, false, { "topic[1].payload",    (sizeof("topic[1].payload")-1)} },
-   { &TblData.Entry[1].SbRole,   OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[1].sb-role",    (sizeof("topic[1].sb-role")-1)} },
-   { &TblData.Entry[2].Name,     OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[2].name",       (sizeof("topic[2].name")-1)}    },
-   { &TblData.Entry[2].Payload,  2,                 false,   JSONNumber, false, { "topic[2].payload",    (sizeof("topic[2].payload")-1)} },
-   { &TblData.Entry[2].SbRole,   OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[2].sb-role",    (sizeof("topic[2].sb-role")-1)} },
-   { &TblData.Entry[3].Name,     OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[3].name",       (sizeof("topic[3].name")-1)}    },
-   { &TblData.Entry[3].Payload,  2,                 false,   JSONNumber, false, { "topic[3].payload",    (sizeof("topic[3].payload")-1)} },
-   { &TblData.Entry[3].SbRole,   OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[3].sb-role",    (sizeof("topic[3].sb-role")-1)} },
-   { &TblData.Entry[4].Name,     OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[4].name",       (sizeof("topic[4].name")-1)}    },
-   { &TblData.Entry[4].Payload,  2,                 false,   JSONNumber, false, { "topic[4].payload",    (sizeof("topic[4].payload")-1)} },
-   { &TblData.Entry[4].SbRole,   OS_MAX_PATH_LEN,   false,   JSONString, false, { "topic[4].sb-role",    (sizeof("topic[4].sb-role")-1)} }
+   { &TblData.Topic[0].Mqtt,    JSON_MAX_TOPIC_LEN, false,   JSONString, false, { "topic[0].mqtt",     (sizeof("topic[0].mqtt")-1)}},
+   { &TblData.Topic[0].Cfe,     2,                  false,   JSONNumber, false, { "topic[0].cfe",      (sizeof("topic[0].cfe")-1)}},
+   { &TblData.Topic[0].SbRole,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[0].sb-role",  (sizeof("topic[0].sb-role")-1)}},
+   { &TblData.Topic[0].EnaStr,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[0].enabled",  (sizeof("topic[0].enabled")-1)}},
+
+   { &TblData.Topic[1].Mqtt,    JSON_MAX_TOPIC_LEN, false,   JSONString, false, { "topic[1].mqtt",     (sizeof("topic[1].mqtt")-1)}},
+   { &TblData.Topic[1].Cfe,     2,                  false,   JSONNumber, false, { "topic[1].cfe",      (sizeof("topic[1].cfe")-1)}},
+   { &TblData.Topic[1].SbRole,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[1].sb-role",  (sizeof("topic[1].sb-role")-1)}},
+   { &TblData.Topic[1].EnaStr,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[1].enabled",  (sizeof("topic[1].enabled")-1)}},
+
+   { &TblData.Topic[2].Mqtt,    JSON_MAX_TOPIC_LEN, false,   JSONString, false, { "topic[2].mqtt",     (sizeof("topic[2].mqtt")-1)}},
+   { &TblData.Topic[2].Cfe,     2,                  false,   JSONNumber, false, { "topic[2].cfe",      (sizeof("topic[2].cfe")-1)}},
+   { &TblData.Topic[2].SbRole,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[2].sb-role",  (sizeof("topic[2].sb-role")-1)}},
+   { &TblData.Topic[2].EnaStr,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[2].enabled",  (sizeof("topic[2].enabled")-1)}},
+
+   { &TblData.Topic[3].Mqtt,    JSON_MAX_TOPIC_LEN, false,   JSONString, false, { "topic[3].mqtt",     (sizeof("topic[3].mqtt")-1)}},
+   { &TblData.Topic[3].Cfe,     2,                  false,   JSONNumber, false, { "topic[3].cfe",      (sizeof("topic[3].cfe")-1)}},
+   { &TblData.Topic[3].SbRole,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[3].sb-role",  (sizeof("topic[3].sb-role")-1)}},
+   { &TblData.Topic[3].EnaStr,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[3].enabled",  (sizeof("topic[3].enabled")-1)}},
+
+   { &TblData.Topic[4].Mqtt,    JSON_MAX_TOPIC_LEN, false,   JSONString, false, { "topic[4].mqtt",     (sizeof("topic[4].mqtt")-1)}},
+   { &TblData.Topic[4].Cfe,     2,                  false,   JSONNumber, false, { "topic[4].cfe",      (sizeof("topic[4].cfe")-1)}},
+   { &TblData.Topic[4].SbRole,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[4].sb-role",  (sizeof("topic[4].sb-role")-1)}},
+   { &TblData.Topic[4].EnaStr,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[4].enabled",  (sizeof("topic[4].enabled")-1)}},
+
+   { &TblData.Topic[5].Mqtt,    JSON_MAX_TOPIC_LEN, false,   JSONString, false, { "topic[5].mqtt",     (sizeof("topic[5].mqtt")-1)}},
+   { &TblData.Topic[5].Cfe,     2,                  false,   JSONNumber, false, { "topic[5].cfe",      (sizeof("topic[5].cfe")-1)}},
+   { &TblData.Topic[5].SbRole,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[5].sb-role",  (sizeof("topic[5].sb-role")-1)}},
+   { &TblData.Topic[5].EnaStr,  JSON_MAX_KW_LEN,    false,   JSONString, false, { "topic[5].enabled",  (sizeof("topic[5].enabled")-1)}}
+
    
 };
 
 
-static MQTT_TOPIC_TBL_PayloadFunc_t PayloadFunc[] =
-{   
-   { MQTT_TOPIC_SBMSG_CfeToMqtt,    MQTT_TOPIC_SBMSG_MqttToCfe,    MQTT_TOPIC_SBMSG_SbMsgTest   }, // MQTT_TOPIC_TBL_PAYLOAD_SB_MSG
-   { MQTT_TOPIC_INTEGER_CfeToJson,  MQTT_TOPIC_INTEGER_JsonToCfe,  MQTT_TOPIC_INTEGER_SbMsgTest }, // MQTT_TOPIC_TBL_PAYLOAD_INTEGER
-   { MQTT_TOPIC_COORD_CfeToJson,    MQTT_TOPIC_COORD_JsonToCfe,    MQTT_TOPIC_COORD_SbMsgTest   }, // MQTT_TOPIC_TBL_PAYLOAD_COORD
-   { StubCfeToJson,                 StubJsonToCfe,                 StubSbMsgTest                }, // MQTT_TOPIC_TBL_PAYLOAD_NULL
-   { StubCfeToJson,                 StubJsonToCfe,                 StubSbMsgTest                }  // MQTT_TOPIC_TBL_PAYLOAD_NULL
-   
-};
+// Table is populated by topic plugin constructors
+static MQTT_TOPIC_TBL_PluginFuncTbl_t PluginFuncTbl[MQTT_GW_PluginTopic_Enum_t_MAX];
 
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_Constructor
@@ -91,9 +96,8 @@ static MQTT_TOPIC_TBL_PayloadFunc_t PayloadFunc[] =
 **    1. This must be called prior to any other functions
 **
 */
-void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, 
-                               const char *AppName, uint32 TopicBaseMid,
-                               uint32 WrapSbMsgMid)
+void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const char *AppName,
+                                uint32 DiscreteTlmTopicId, uint32 TunnelTlmTopicId)
 {
 
    uint8 i;
@@ -102,24 +106,21 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr,
    CFE_PSP_MemSet(MqttTopicTbl, 0, sizeof(MQTT_TOPIC_TBL_Class_t));
 
    MqttTopicTbl->AppName = AppName;
+   MqttTopicTbl->DiscreteTlmTopicId = DiscreteTlmTopicId;
+   MqttTopicTbl->TunnelTlmTopicId   = TunnelTlmTopicId;
    MqttTopicTbl->JsonObjCnt = (sizeof(JsonTblObjs)/sizeof(CJSON_Obj_t));
    
-   for (i=0; i < MQTT_TOPIC_TBL_MAX_TOPICS; i++)
+   for (i=0; i < MQTT_GW_PluginTopic_Enum_t_MAX; i++)
    {
-      MqttTopicTbl->Data.Entry[i].Payload = MQTT_TOPIC_TBL_PAYLOAD_NULL;
+      TblData.Topic[i].Enabled = false;
+      MqttTopicTbl->Data.Topic[i].Enabled = false;
    }
    
-   MQTT_TOPIC_SBMSG_Constructor(&MqttTopicTbl->SbMsg, 
-                                CFE_SB_ValueToMsgId(TopicBaseMid),  
-                                CFE_SB_ValueToMsgId(TopicBaseMid+1), // Discrete MID 
-                                CFE_SB_ValueToMsgId(WrapSbMsgMid));
-                                
-   MQTT_TOPIC_INTEGER_Constructor(&MqttTopicTbl->Integer, 
-                                  CFE_SB_ValueToMsgId(TopicBaseMid+1));
-                                   
-   MQTT_TOPIC_COORD_Constructor(&MqttTopicTbl->Coord, 
-                                CFE_SB_ValueToMsgId(TopicBaseMid+2));
-   
+   // Plugin stubs loaded for disabled entries
+   MQTT_GW_TOPIC_PLUGIN_Constructor(&MqttTopicTbl->Data, PluginFuncTbl,
+                                    MqttTopicTbl->DiscreteTlmTopicId, TunnelTlmTopicId);
+                                    
+
 } /* End MQTT_TOPIC_TBL_Constructor() */
 
 
@@ -163,17 +164,17 @@ bool MQTT_TOPIC_TBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filen
       sprintf(DumpRecord,"   \"topics\": [\n");
       OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
 
-      for (i=0; i < MQTT_TOPIC_TBL_MAX_TOPICS; i++)
+      for (i=0; i < MQTT_GW_PluginTopic_Enum_t_MAX; i++)
       {
-         if (MqttTopicTbl->Data.Entry[i].Payload != MQTT_TOPIC_TBL_PAYLOAD_NULL)
+         if (MqttTopicTbl->Data.Topic[i].Enabled)
          {
             if (i > 0)
             {
                sprintf(DumpRecord,",\n");
                OS_write(FileHandle,DumpRecord,strlen(DumpRecord));      
             }
-            sprintf(DumpRecord,"   {\n         \"name\": \"%s\",\n         \"payload\": %d\n      }",
-                    MqttTopicTbl->Data.Entry[i].Name, MqttTopicTbl->Data.Entry[i].Payload);
+            sprintf(DumpRecord,"   {\n         \"mqtt\": \"%s\",\n         \"cfe\": %d,\n         \"sb-role\": \"%s\",\n         \"enabled\": \"enabled\"\n      }",
+                    MqttTopicTbl->Data.Topic[i].Mqtt, MqttTopicTbl->Data.Topic[i].Cfe, MqttTopicTbl->Data.Topic[i].SbRole);
             OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
          }
       }
@@ -203,24 +204,22 @@ bool MQTT_TOPIC_TBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filen
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_GetCfeToJson
 **
-** Return a pointer to the CfeToJson conversion function for 'Idx' and return a
+** Return a pointer to the CfeToJson conversion function for 'Index' and return a
 ** pointer to the JSON topic string in JsonMsgTopic.
 ** 
 ** Notes:
-**   1. Idx must be less than MQTT_TOPIC_TBL_MAX_TOPICS
+**   1. Index must be less than MQTT_GW_PluginTopic_Enum_t_MAX
 **
 */
-MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Idx,
-                                                      const char **JsonMsgTopic)
+MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Index, const char **JsonMsgTopic)
 {
-   uint16 PayloadId;
+
    MQTT_TOPIC_TBL_CfeToJson_t CfeToJsonFunc = NULL;
    
-   if (MQTT_TOPIC_TBL_ValidId(Idx))
+   if (MQTT_TOPIC_TBL_ValidId(Index))
    {
-         *JsonMsgTopic = TblData.Entry[Idx].Name;
-         PayloadId     = TblData.Entry[Idx].Payload;
-         CfeToJsonFunc = PayloadFunc[PayloadId].CfeToJson;
+         *JsonMsgTopic = MqttTopicTbl->Data.Topic[Index].Mqtt;
+         CfeToJsonFunc = PluginFuncTbl[Index].CfeToJson;
    }
 
    return CfeToJsonFunc;
@@ -229,48 +228,46 @@ MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Idx,
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_TBL_GetEntry
+** Function: MQTT_TOPIC_TBL_GetTopic
 **
-** Return a pointer to the table entry identified by 'Idx'.
+** Return a pointer to the table topic entry identified by 'Index'.
 ** 
 ** Notes:
-**   1. Idx must be less than MQTT_TOPIC_TBL_MAX_TOPICS
+**   1. IndexIndex must be less than MQTT_GW_PluginTopic_Enum_t_MAX
 **
 */
-const MQTT_TOPIC_TBL_Entry_t *MQTT_TOPIC_TBL_GetEntry(uint8 Idx)
+const MQTT_TOPIC_TBL_Topic_t *MQTT_TOPIC_TBL_GetTopic(uint8 Index)
 {
 
-   MQTT_TOPIC_TBL_Entry_t *Entry = NULL;
+   MQTT_TOPIC_TBL_Topic_t *Topic = NULL;
    
-   if (MQTT_TOPIC_TBL_ValidId(Idx))
+   if (MQTT_TOPIC_TBL_ValidId(Index))
    {
-      Entry = &MqttTopicTbl->Data.Entry[Idx];
+      Topic = &MqttTopicTbl->Data.Topic[Index];
    }
 
-   return Entry;
+   return Topic;
    
-} /* End MQTT_TOPIC_TBL_GetEntry() */
+} /* End MQTT_TOPIC_TBL_GetTopic() */
 
 
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_GetJsonToCfe
 **
-** Return a pointer to the JsonToCfe conversion function for 'Idx'.
+** Return a pointer to the JsonToCfe conversion function for 'Index'.
 ** 
 ** Notes:
-**   1. Idx must be less than MQTT_TOPIC_TBL_MAX_TOPICS
+**   1. Index must be less than MQTT_GW_PluginTopic_Enum_t_MAX
 **
 */
-MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(uint8 Idx)
+MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(uint8 Index)
 {
 
-   uint16 PayloadId;
    MQTT_TOPIC_TBL_JsonToCfe_t JsonToCfeFunc = NULL;
    
-   if (MQTT_TOPIC_TBL_ValidId(Idx))
+   if (MQTT_TOPIC_TBL_ValidId(Index))
    {
-      PayloadId     = TblData.Entry[Idx].Payload;
-      JsonToCfeFunc = PayloadFunc[PayloadId].JsonToCfe;
+      JsonToCfeFunc = PluginFuncTbl[Index].JsonToCfe;
    }
 
    return JsonToCfeFunc;
@@ -286,7 +283,7 @@ MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(uint8 Idx)
 **  2. This could migrate into table manager but I think I'll keep it here so
 **     user's can add table processing code if needed.
 */
-bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename)
+bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filename)
 {
 
    bool  RetStatus = false;
@@ -297,7 +294,7 @@ bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filen
       MqttTopicTbl->Loaded = true;
       MqttTopicTbl->LastLoadStatus = TBLMGR_STATUS_VALID;
       RetStatus = true;
-   
+
    }
    else
    {
@@ -309,6 +306,36 @@ bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filen
    return RetStatus;
    
 } /* End MQTT_TOPIC_TBL_LoadCmd() */
+
+
+/******************************************************************************
+** Function: MQTT_TOPIC_TBL_MsgIdToIndex
+**
+** Return an topic table index for a message ID
+** 
+** Notes:
+**   1. MQTT_GW_PluginTopic_UNDEF is returned if the message ID isn't found.
+**
+*/
+uint8 MQTT_TOPIC_TBL_MsgIdToIndex(CFE_SB_MsgId_t MsgId)
+{
+   
+   uint8  Index = MQTT_GW_PluginTopic_UNDEF;
+   uint32 MsgIdValue = CFE_SB_MsgIdToValue(MsgId);
+  
+   for (int i=0; i < MQTT_GW_PluginTopic_Enum_t_MAX; i++)
+   {
+      if (MsgIdValue == MqttTopicTbl->Data.Topic[i].Cfe)
+      {
+         Index = i;
+         break;
+      }
+      
+   }
+
+   return Index;
+   
+} /* End MQTT_TOPIC_TBL_MsgIdToIndex() */
 
 
 /******************************************************************************
@@ -328,14 +355,14 @@ void MQTT_TOPIC_TBL_ResetStatus(void)
 ** Function: MQTT_TOPIC_TBL_RunSbMsgTest
 **
 ** Notes:
-**   1. Assumes Idx has been verified and that the PayloadFunc array does not
+**   1. Assumes Index has been verified and that the PluginFuncTbl array does not
 **      have any NULL pointers 
 **
 */
-void MQTT_TOPIC_TBL_RunSbMsgTest(uint8 Idx, bool Init, int16 Param)
+void MQTT_TOPIC_TBL_RunSbMsgTest(uint8 Index, bool Init, int16 Param)
 {
 
-   (PayloadFunc[Idx].SbMsgTest)(Init, Param);
+   (PluginFuncTbl[Index].SbMsgTest)(Init, Param);
 
 } /* End MQTT_TOPIC_TBL_RunSbMsgTest() */
 
@@ -345,14 +372,14 @@ void MQTT_TOPIC_TBL_RunSbMsgTest(uint8 Idx, bool Init, int16 Param)
 **
 ** In addition to being in range, valid means that the ID has been defined.
 */
-bool MQTT_TOPIC_TBL_ValidId(uint8 Idx)
+bool MQTT_TOPIC_TBL_ValidId(uint8 Index)
 {
 
    bool RetStatus = false;
    
-   if (Idx < MQTT_TOPIC_TBL_MAX_TOPICS)
+   if (Index < MQTT_GW_PluginTopic_Enum_t_MAX)
    {
-      if (MqttTopicTbl->Data.Entry[Idx].Payload != MQTT_TOPIC_TBL_PAYLOAD_NULL)
+      if (MqttTopicTbl->Data.Topic[Index].Enabled)
       {
          RetStatus = true;
       }
@@ -361,7 +388,7 @@ bool MQTT_TOPIC_TBL_ValidId(uint8 Idx)
    {
       CFE_EVS_SendEvent(MQTT_TOPIC_TBL_INDEX_ERR_EID, CFE_EVS_EventType_ERROR, 
                         "Table index %d is out of range. It must less than %d",
-                        Idx, MQTT_TOPIC_TBL_MAX_TOPICS);
+                        Index, MQTT_GW_PluginTopic_Enum_t_MAX);
    }
 
    return RetStatus;
@@ -405,9 +432,18 @@ static bool LoadJsonData(size_t JsonFileLen)
    }
    else
    {
-   
+
+      for (int i=0; i < MQTT_GW_PluginTopic_Enum_t_MAX; i++)
+      {
+         TblData.Topic[i].Enabled = (strcmp(TblData.Topic[i].EnaStr, "true") == 0);
+      }
       memcpy(&MqttTopicTbl->Data,&TblData, sizeof(MQTT_TOPIC_TBL_Data_t));
       MqttTopicTbl->LastLoadCnt = ObjLoadCnt;
+
+      MQTT_GW_TOPIC_PLUGIN_Constructor(&MqttTopicTbl->Data,PluginFuncTbl,
+                                       MqttTopicTbl->DiscreteTlmTopicId, 
+                                       MqttTopicTbl->TunnelTlmTopicId);
+
       RetStatus = true;
       
    }
@@ -415,59 +451,5 @@ static bool LoadJsonData(size_t JsonFileLen)
    return RetStatus;
    
 } /* End LoadJsonData() */
-
-
-/******************************************************************************
-** Function: StubCfeToJson
-**
-** Provide a CfeToJson stub function to be used as a non-NULL pointer in the
-** PayloadfFunc default values.
-**
-*/
-static bool StubCfeToJson(const char **JsonMsgPayload, 
-                          const CFE_MSG_Message_t *CfeMsg)
-{
-
-   CFE_EVS_SendEvent(MQTT_TOPIC_TBL_STUB_EID, CFE_EVS_EventType_INFORMATION, 
-                     "CfeToJson stub");
-
-   return false;
-   
-} /* End StubCfeToJson() */
-
-
-/******************************************************************************
-** Function: StubJsonToCfe
-**
-** Provide a CfeToJson stub function to be used as a non-NULL pointer in the
-** PayloadFunc default values.
-**
-*/
-static bool StubJsonToCfe(CFE_MSG_Message_t **CfeMsg, 
-                          const char *JsonMsgPayload, uint16 PayloadLen)
-{
-   
-   CFE_EVS_SendEvent(MQTT_TOPIC_TBL_STUB_EID, CFE_EVS_EventType_INFORMATION, 
-                     "JsonToCfe stub");
-
-   return false;
-   
-} /* End StubJsonToCfe() */
-
-
-/******************************************************************************
-** Function: StubSbMsgTest
-**
-** Provide a CfeToJson stub function to be used as a non-NULL pointer in the
-** PayloadFunc default values.
-**
-*/
-static void StubSbMsgTest(bool Init, int16 Param)
-{
-
-   CFE_EVS_SendEvent(MQTT_TOPIC_TBL_STUB_EID, CFE_EVS_EventType_INFORMATION, 
-                     "SbMsgTest stub");
-   
-} /* End StubSbMsgTest() */
 
 

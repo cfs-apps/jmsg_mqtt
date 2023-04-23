@@ -19,7 +19,7 @@
 **   None
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide
+**   1. cFS Basecamp Object-based Application Developer's Guide
 **   2. cFS Application Developer's Guide
 **
 */
@@ -37,7 +37,7 @@
 /*******************************/
 
 static void ProcessSbTopicMsgs(uint32 PerfId);
-static void SubscribeToTopicMessages(uint32 TopicBaseMid);
+static void SubscribeToTopicMessages(void);
 
 /*****************/
 /** Global Data **/
@@ -76,7 +76,7 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
 
    MSG_TRANS_Constructor(&MqttMgr->MsgTrans, IniTbl, TblMgr);
 
-   SubscribeToTopicMessages(INITBL_GetIntConfig(IniTbl, CFG_MQTT_GW_TOPIC_1_TLM_TOPICID));
+   SubscribeToTopicMessages();
       
 } /* End MQTT_MGR_Constructor() */
 
@@ -110,23 +110,25 @@ bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *Ms
 
    if (MQTT_TOPIC_TBL_ValidId(ConfigSbTopicTestCmd->Id))
    {
-      if (ConfigSbTopicTestCmd->Action == 1)
+      if (ConfigSbTopicTestCmd->Action == MQTT_GW_TestAction_Start)
       {
          MqttMgr->SbTopicTestId     = ConfigSbTopicTestCmd->Id;
          MqttMgr->SbTopicTestParam  = ConfigSbTopicTestCmd->Param;
          MqttMgr->SbTopicTestActive = true;
          RetStatus = true;
          CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                           "Started SB test for topic ID %d", ConfigSbTopicTestCmd->Id);
+                           "Started SB test for topic ID %d(table index %d)",
+                           (ConfigSbTopicTestCmd->Id+1),ConfigSbTopicTestCmd->Id);
          MQTT_TOPIC_TBL_RunSbMsgTest(MqttMgr->SbTopicTestId, true, ConfigSbTopicTestCmd->Param);
       }
-      else if (ConfigSbTopicTestCmd->Action == 2)
+      else if (ConfigSbTopicTestCmd->Action == MQTT_GW_TestAction_Stop)
       {
          MqttMgr->SbTopicTestId = ConfigSbTopicTestCmd->Id;
          MqttMgr->SbTopicTestActive = false;
          RetStatus = true;
          CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                           "Stopped SB test for topic ID %d", ConfigSbTopicTestCmd->Id);
+                           "Stopped SB test for topic ID %d(table index %d)",
+                           (ConfigSbTopicTestCmd->Id+1),ConfigSbTopicTestCmd->Id);
       }
       else
       {
@@ -139,8 +141,8 @@ bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *Ms
    else
    {
       CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TEST_ERR_EID, CFE_EVS_EventType_ERROR, 
-                        "Configured SB topic test command rejected. Id %d either invalid or not loaded", 
-                        ConfigSbTopicTestCmd->Id);
+                        "Configured SB topic test command rejected. Id %d(table index %d) either invalid or not loaded", 
+                        (ConfigSbTopicTestCmd->Id+1),ConfigSbTopicTestCmd->Id);
 
    }
   
@@ -271,7 +273,7 @@ static void ProcessSbTopicMsgs(uint32 PerfId)
 ** definition in the topic table.
 **
 */
-static void SubscribeToTopicMessages(uint32 TopicBaseMid)
+static void SubscribeToTopicMessages(void)
 {
 
    uint16 i;
@@ -279,38 +281,38 @@ static void SubscribeToTopicMessages(uint32 TopicBaseMid)
    uint16 MqttSubscribeCnt = 0;
    uint16 SubscribeErr = 0;
    
-   const MQTT_TOPIC_TBL_Entry_t *TopicTblEntry;
+   const MQTT_TOPIC_TBL_Topic_t *Topic;
    
-   for (i=0; i < MQTT_TOPIC_TBL_MAX_TOPICS; i++)
+   for (i=0; i < MQTT_GW_PluginTopic_Enum_t_MAX; i++)
    {
 
-      TopicTblEntry = MQTT_TOPIC_TBL_GetEntry(i);
-      if (TopicTblEntry != NULL)   
+      Topic = MQTT_TOPIC_TBL_GetTopic(i);
+      if (Topic != NULL)   
       {
-         if (TopicTblEntry->Payload != MQTT_TOPIC_TBL_PAYLOAD_NULL)
+         if (Topic->Enabled)
          {
 
-            if (strcmp(TopicTblEntry->SbRole,"sub") == 0)
+            if (strcmp(Topic->SbRole,"sub") == 0)
             {
                ++SbSubscribeCnt;
-               CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TopicBaseMid+i),
-                                MqttMgr->TopicPipe);
+               CFE_SB_Subscribe(CFE_SB_ValueToMsgId(Topic->Cfe), MqttMgr->TopicPipe);
+               CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_EID, CFE_EVS_EventType_INFORMATION, 
+                       "Subscribed to SB for topic 0x%04X(%d)", Topic->Cfe, Topic->Cfe);
             }
             else
             {
                /* MQTTlib does not store a copy of topic so it must be in persistent memory */
-               if (MQTT_CLIENT_Subscribe(TopicTblEntry->Name, MQTT_CLIENT_QOS2, 
-                                         MSG_TRANS_ProcessMqttMsg))
+               if (MQTT_CLIENT_Subscribe(Topic->Mqtt, MQTT_CLIENT_QOS2, MSG_TRANS_ProcessMqttMsg))
                {
                   ++MqttSubscribeCnt;
                   CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_EID, CFE_EVS_EventType_INFORMATION, 
-                          "Subscribed to MQTT client for topic %s", TopicTblEntry->Name);
+                          "Subscribed to MQTT client for topic %s", Topic->Mqtt);
                }
                else
                {
                   ++SubscribeErr;
                   CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR, 
-                          "Error subscribing to MQTT client for topic %s", TopicTblEntry->Name);
+                          "Error subscribing to MQTT client for topic %s", Topic->Mqtt);
                }
             }
          } /* End if not NULL */

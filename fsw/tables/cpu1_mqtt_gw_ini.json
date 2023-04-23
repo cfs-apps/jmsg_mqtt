@@ -1,7 +1,9 @@
 {
    "title": "MQTT initialization file",
    "description": [ "Define runtime configurations",
-                    "broker.emqx.io is used by https://spacesteps.com/mqtt_receive"],
+                    "APP_CFE_NAME, TBL_CFE_NAME: Must match mqtt_platform_cfg.h definitions",
+                    "TBL_ERR_CODE: 3,472,883,840 = 0xCF000080. See cfe_error.h for field descriptions",
+                    "SEND_HK_MID: 8177(0x1FF1) is temporary during development. Change t 0x1F51(8017) of add to startup & scheduler"],
    "config": {
       
       "APP_CFE_NAME": "MQTT",
@@ -9,13 +11,13 @@
       "APP_MAIN_PERF_ID":   91,
       "CHILD_TASK_PERF_ID": 92,
       
-      "MQTT_GW_CMD_TOPICID"  : 0,
-      "BC_SCH_2_SEC_TOPICID" : 0,
+      "MQTT_GW_CMD_TOPICID"  : 6242,
+      "BC_SCH_2_SEC_TOPICID" : 6227,
 
-      "MQTT_GW_HK_TLM_TOPICID"     : 0,
-      "MQTT_GW_TOPIC_1_TLM_TOPICID": 0,
-      "KIT_TO_SB_WRAP_TO_UDP_TLM_TOPICID": 0,      
-      
+      "MQTT_GW_HK_TLM_TOPICID"     : 2154,
+      "MQTT_GW_DISCRETE_PLUGIN_TOPICID": 2155,
+      "KIT_TO_TUNNEL_TLM_TOPICID": 2146,
+            
       "CMD_PIPE_NAME":  "MQTT_CMD_PIPE",
       "CMD_PIPE_DEPTH": 5,
 
@@ -23,9 +25,12 @@
       "TOPIC_PIPE_DEPTH":     20,
       "TOPIC_PIPE_PEND_TIME": 250,
 
+      "MQTT_BROKER_PORT~":    8000,
+      "MQTT_BROKER_PORT~":    8084,
       "MQTT_BROKER_PORT":     1883,
       "MQTT_BROKER_ADDRESS":  "broker.emqx.io",
-      "MQTT_BROKER_ADDRESS~": "broker.hivemq.com",
+      "MQTT_BROKER_ADDRESS~":  "broker.hivemq.com",
+      "MQTT_BROKER_ADDRESS~":  "broker.mqttdashboard.com",      
       "MQTT_BROKER_USERNAME": "UNDEF",
       "MQTT_BROKER_PASSWORD": "UNDEF",
       

@@ -19,15 +19,11 @@
 
     Notes:
       1. This document adheres to the Electronic Data Sheet (EDS) XML schema 
-         as prescribed in CCSDS book 876.0.
-      2. This uses KIT_TO's definitions for SB messages that are wrapped.
-         The LOCAL_IN and REMOTE_OUT definitions mirror MQTT_GW's 
-         LOCAL_OUT and REMOTE_IN definitions. 
-         
+         as prescribed in CCSDS book 876.0.         
 
 -->
 <PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
-  <Package name="MQTT_GW" shortDescription="OpenSatKit MQTT application">
+  <Package name="MQTT_GW" shortDescription="cFS Basecamp MQTT application">
     <DataTypeSet>
 
       <!--***********************************-->
@@ -48,6 +44,21 @@
         <EnumerationList>
           <Enumeration label="Start" value="1" shortDescription="Start a test" />
           <Enumeration label="Stop"  value="2" shortDescription="Stop a test" />
+        </EnumerationList>
+      </EnumeratedDataType>
+
+      <EnumeratedDataType name="PluginTopic" shortDescription="Used as indices so values start at 0. User name interface is 1..N" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="1"     value="0" shortDescription="" />
+          <Enumeration label="2"     value="1" shortDescription="" />
+          <Enumeration label="3"     value="2" shortDescription="" />
+          <Enumeration label="4"     value="3" shortDescription="" />
+          <Enumeration label="5"     value="4" shortDescription="" />
+          <Enumeration label="6"     value="5" shortDescription="" />
+          <Enumeration label="7"     value="6" shortDescription="" />
+          <Enumeration label="8"     value="7" shortDescription="" />
+          <Enumeration label="UNDEF" value="8" shortDescription="" />
         </EnumerationList>
       </EnumeratedDataType>
 
@@ -81,7 +92,7 @@
 
       <ContainerDataType name="ConfigSbTopicTest_Payload" shortDescription="Start or stop a SB topic test">
         <EntryList>
-          <Entry name="Id"     type="BASE_TYPES/uint16" shortDescription="Topic identifier which is an index into the MQTT_TOPIC_TBL" />
+          <Entry name="Id"     type="PluginTopic"       shortDescription="Plugin Topic identifier" />
           <Entry name="Action" type="TestAction"        shortDescription="Start/stop a test" />
           <Entry name="Param"  type="BASE_TYPES/int16"  shortDescription="Topic specific test parameter" />
        </EntryList>
@@ -107,12 +118,12 @@
           <Entry name="ValidSbMsgCnt"       type="BASE_TYPES/uint32"   />
           <Entry name="InvalidSbMsgCnt"     type="BASE_TYPES/uint32"   />
           <Entry name="SbTopicTestActive"   type="APP_C_FW/BooleanUint8" />
-          <Entry name="SbTopicTestId"       type="BASE_TYPES/uint16"   />
+          <Entry name="SbTopicTestId"       type="PluginTopic"         />
           <Entry name="SbTopicTestParam"    type="BASE_TYPES/int16"    />
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="IntegerTlm_Payload" shortDescription="Generic integer items">
+      <ContainerDataType name="DiscretePluginTlm_Payload" shortDescription="Generic discrete integer items">
         <EntryList>
           <Entry name="Item_1" type="BASE_TYPES/int32"  />
           <Entry name="Item_2" type="BASE_TYPES/int32"  />
@@ -121,7 +132,7 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="CoordTlm_Payload" shortDescription="3 axis coordinates">
+      <ContainerDataType name="RatePluginTlm_Payload" shortDescription="3 axis coordinates">
         <EntryList>
           <Entry name="X" type="BASE_TYPES/float"  />
           <Entry name="Y" type="BASE_TYPES/float"  />
@@ -194,15 +205,15 @@
         </EntryList>
       </ContainerDataType>
      
-      <ContainerDataType name="IntegerTlm" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="DiscretePluginTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="IntegerTlm_Payload" name="Payload" />
+          <Entry type="DiscretePluginTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="CoordTlm" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="RatePluginTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="CoordTlm_Payload" name="Payload" />
+          <Entry type="RatePluginTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -229,21 +240,15 @@
             </GenericTypeMapSet>
           </Interface>
 
-          <Interface name="SB_WRAP_TO_MQTT_TLM" shortDescription="Messages from SB that are wrapped and sent to MQTT broker" type="CFE_SB/Telemetry">
+          <Interface name="DISCRETE_PLUGIN_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="KIT_TO/WrappedSbMsgTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="DiscretePluginTlm" />
             </GenericTypeMapSet>
           </Interface>
 
-          <Interface name="DEMO_DISCRETE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="RATE_PLUGIN_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="IntegerTlm" />
-            </GenericTypeMapSet>
-          </Interface>
-
-          <Interface name="DEMO_RATE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
-            <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="CoordTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="RatePluginTlm" />
             </GenericTypeMapSet>
           </Interface>
 
@@ -257,17 +262,15 @@
           <VariableSet>
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"             initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"           initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SbWrapToMqttTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_1_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DemoDiscreteTlmTopicId" initialValue="${CFE_MISSION/MQTT_GW_TOPIC_2_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DemoRateTlmTopicId"     initialValue="${CFE_MISSION/MQTT_GW_TOPIC_3_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscretePluginTopicId"  initialValue="${CFE_MISSION/MQTT_GW_DISCRETE_PLUGIN_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RatePluginTopicId"      initialValue="${CFE_MISSION/MQTT_GW_RATE_PLUGIN_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
             <ParameterMap interface="CMD"                 parameter="TopicId" variableRef="CmdTopicId" />
             <ParameterMap interface="HK_TLM"              parameter="TopicId" variableRef="HkTlmTopicId" />
-            <ParameterMap interface="SB_WRAP_TO_MQTT_TLM" parameter="TopicId" variableRef="SbWrapToMqttTlmTopicId" />
-            <ParameterMap interface="DEMO_DISCRETE_TLM"   parameter="TopicId" variableRef="DemoDiscreteTlmTopicId" />
-            <ParameterMap interface="DEMO_RATE_TLM"       parameter="TopicId" variableRef="DemoRateTlmTopicId" />
+            <ParameterMap interface="DISCRETE_PLUGIN_TLM" parameter="TopicId" variableRef="DiscretePluginTopicId" />
+            <ParameterMap interface="RATE_PLUGIN_TLM"     parameter="TopicId" variableRef="RatePluginTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

@@ -21,7 +21,7 @@
 **      all applications following the object-based application design.
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
+**   1. cFS Basecamp Object-based Application Developer's Guide.
 **   2. cFS Application Developer's Guide.
 **
 */
@@ -84,12 +84,11 @@
 #define CFG_APP_MAIN_PERF_ID         APP_MAIN_PERF_ID
 #define CFG_CHILD_TASK_PERF_ID       CHILD_TASK_PERF_ID
 
-#define CFG_MQTT_GW_CMD_TOPICID      MQTT_GW_CMD_TOPICID
-#define CFG_SEND_HK_TLM_TOPICID      BC_SCH_2_SEC_TOPICID
- 
-#define CFG_MQTT_GW_HK_TLM_TOPICID            MQTT_GW_HK_TLM_TOPICID
-#define CFG_MQTT_GW_TOPIC_1_TLM_TOPICID       MQTT_GW_TOPIC_1_TLM_TOPICID
-#define CFG_KIT_TO_SB_WRAP_TO_UDP_TLM_TOPICID KIT_TO_SB_WRAP_TO_UDP_TLM_TOPICID
+#define CFG_MQTT_GW_CMD_TOPICID             MQTT_GW_CMD_TOPICID
+#define CFG_SEND_HK_TLM_TOPICID             BC_SCH_2_SEC_TOPICID
+#define CFG_MQTT_GW_HK_TLM_TOPICID          MQTT_GW_HK_TLM_TOPICID
+#define CFG_MQTT_GW_DISCRETE_PLUGIN_TOPICID MQTT_GW_DISCRETE_PLUGIN_TOPICID
+#define CFG_KIT_TO_TUNNEL_TLM_TOPICID       KIT_TO_TUNNEL_TLM_TOPICID
 
 #define CFG_CMD_PIPE_NAME            CMD_PIPE_NAME
 #define CFG_CMD_PIPE_DEPTH           CMD_PIPE_DEPTH
@@ -118,8 +117,8 @@
    XX(MQTT_GW_CMD_TOPICID,uint32) \
    XX(BC_SCH_2_SEC_TOPICID,uint32) \
    XX(MQTT_GW_HK_TLM_TOPICID,uint32) \
-   XX(MQTT_GW_TOPIC_1_TLM_TOPICID,uint32) \
-   XX(KIT_TO_SB_WRAP_TO_UDP_TLM_TOPICID,uint32) \
+   XX(MQTT_GW_DISCRETE_PLUGIN_TOPICID,uint32) \
+   XX(KIT_TO_TUNNEL_TLM_TOPICID,uint32) \
    XX(CMD_PIPE_NAME,char*) \
    XX(CMD_PIPE_DEPTH,uint32) \
    XX(TOPIC_PIPE_NAME,char*) \
@@ -162,9 +161,8 @@ DECLARE_ENUM(Config,APP_CONFIG)
 #define MQTT_CLIENT_BASE_EID          (APP_C_FW_APP_BASE_EID + 40)
 #define MSG_TRANS_BASE_EID            (APP_C_FW_APP_BASE_EID + 60)
 #define MQTT_TOPIC_TBL_BASE_EID       (APP_C_FW_APP_BASE_EID + 80)
-#define MQTT_TOPIC_SBMSG_BASE_EID     (APP_C_FW_APP_BASE_EID + 90)
-#define MQTT_TOPIC_INTEGER_BASE_EID   (APP_C_FW_APP_BASE_EID + 100)
-#define MQTT_TOPIC_COORD_BASE_EID     (APP_C_FW_APP_BASE_EID + 110)
+
+// Topic plugin macros are defined in mqtt_gw_topic_plugin.h and start at (APP_C_FW_APP_BASE_EID + 200)
 
 /******************************************************************************
 ** MQTT Client
@@ -190,7 +188,6 @@ DECLARE_ENUM(Config,APP_CONFIG)
 **
 */
 
-#define MQTT_TOPIC_TBL_MAX_TOPICS             5
 #define MQTT_TOPIC_TBL_MAX_TOPIC_LEN         32
 #define MQTT_TOPIC_TBL_JSON_FILE_MAX_CHAR  2048
 

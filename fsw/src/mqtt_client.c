@@ -24,7 +24,7 @@
 **      and table processing.
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide
+**   1. cFS Basecamp Object-based Application Developer's Guide
 **   2. cFS Application Developer's Guide
 **
 */
@@ -113,8 +113,8 @@ bool MQTT_CLIENT_Connect(const char *ClientName, const char *BrokerAddress,
       MqttClient->ConnectData.willFlag = 0;
       MqttClient->ConnectData.MQTTVersion = 3;
       MqttClient->ConnectData.clientID.cstring = (char *)ClientName;
-      MqttClient->ConnectData.username.cstring = NULL; /* TODO: INITBL_GetStrConfig(IniTbl, CFG_MQTT_BROKER_USERNAME), JSON Ini doesn't support null */
-      MqttClient->ConnectData.password.cstring = NULL; /* TODO: INITBL_GetStrConfig(IniTbl, CFG_MQTT_BROKER_PASSWROD), JSON Ini doesn't support null */
+      MqttClient->ConnectData.username.cstring = NULL;
+      MqttClient->ConnectData.password.cstring = NULL;
 
       MqttClient->ConnectData.keepAliveInterval = 10;
       MqttClient->ConnectData.cleansession = 1;

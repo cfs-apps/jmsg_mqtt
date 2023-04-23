@@ -24,7 +24,7 @@
 **      and table processing.
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide
+**   1. cFS Basecamp Object-based Application Developer's Guide
 **   2. cFS Application Developer's Guide
 **
 */
@@ -72,8 +72,8 @@ typedef struct
    CFE_SB_PipeId_t TopicPipe;
    
    bool    SbTopicTestActive;
-   uint16  SbTopicTestId;
    int16   SbTopicTestParam;
+   MQTT_GW_PluginTopic_Enum_t  SbTopicTestId;
    
    /*
    ** Contained Objects

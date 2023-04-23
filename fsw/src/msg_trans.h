@@ -24,7 +24,7 @@
 **      and table processing.
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide
+**   1. cFS Basecamp Object-based Application Developer's Guide
 **   2. cFS Application Developer's Guide
 **
 */
@@ -83,7 +83,6 @@ typedef struct
 typedef struct 
 {
 
-   uint32  TopicBaseMid;
    uint32  ValidMqttMsgCnt;
    uint32  InvalidMqttMsgCnt;
    uint32  ValidSbMsgCnt;

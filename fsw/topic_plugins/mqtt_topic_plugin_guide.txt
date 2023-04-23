@@ -1,0 +1,72 @@
+
+These are the instructions for adding an MQTT topic plugin. Topic plugins 
+define functions for converting between MQTT messages and cFE SB messages.
+- The MQTT_GW app is typically located in cfs-basecamp/usr/apps/
+- [app] is your user app name. SC_SIM is commented out in MQTT files to
+  serve as an example
+- It is recommended to place app MQTT plugin in files in fsw/mqtt and include
+  a file named mqtt_install.txt that explains how to install the app's plugin
+  from the app's perspective
+- In cfs-basecamp/cfe-eds-framework/basecamp_defs/cpu1_mqtt_gw_ini.json make
+  sure the "MQTT_BROKER" configurations match your situiation
+  
+  
+#################################################
+App plugin creation steps. See MQTT_GW app docs
+for a more detailed explanation. SC_SIM provides
+a working example that can serve as a reference.
+#################################################
+
+1. Create a fsw/mqtt subdirectory in your app's repo
+2. For each topic create a header file that
+   - Includes "mqtt_gw_topic_plugins.h"
+   - Defines event IDs based on MQTT_GW_TOPIC_#_BASE_EID
+   - Defines an object class type [APP]_MQTT_TOPIC_CMD_Class_t 
+   - Defines a global constructor function
+3. For each topic create a source file that defines
+   - A cFE SB message to JSON message converter
+   - A JSON message to cFE SB message converter
+   - A test function
+   
+#################################################
+App plugin creation steps. See MQTT_GW app docs
+for a more detailed explanation
+#################################################
+
+1. Add the following lines to mqtt_gw/CMakeLists.txt.
+
+   include_directories(${[app]_MISSION_DIR}/fsw/mqtt)
+   aux_source_directory(${[app]_MISSION_DIR}/fsw/mqtt APP_SRC_FILES)
+
+
+2. Update the following sections in mqtt_gw/fsw/topic_plugins/mqtt_gw_topic_plugins.c.
+   Each constructor is added to an MQTT_GW_PluginTopic_# where # is the
+   plugin identifier. 
+
+   - In the "Include files" section add
+   
+     #include "[app_name]_mqtt_topic_[topic_name].h"
+
+   - In "Global File Data" declare topic plugin data
+     
+     static [APP_NAME]_MQTT_TOPIC_[TOPIC_NAME]_Class_t  [AppName]Topic[TopicName];
+
+   - In MQTT_GW_TOPIC_PLUGIN_Constructor() add a call to your app's plugin
+     constructor in the plugin topic switch statement.
+     
+     [APP_NAME]_MQTT_TOPIC_[TOPIC_NAME]_Constructor(&[AppName]Topic[TopicName], &PluginFuncTbl[i],
+                                                    CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+
+3. In your app's plugin header file [app_name]_mqtt_topic_[topic_name].h, ensure your
+   MQTT_GW_TOPIC_PLUGIN_#_BASE_EID identfier # matches the ID used in step 1
+   
+4. Add your plugin to cfs-basecamp/cfe-eds-framework/basecamp_defs/cpu1_mqtt_gw_topics.json. This 
+   file contains detailed instructions
+
+    {
+       "mqtt":  "basecamp/[app_name]/[topic_name]",
+       "cfe-#": 0,
+       "cfe": 0,
+       "sb-role": "pub",
+       "enabled": "false"
+    }

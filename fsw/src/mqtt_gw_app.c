@@ -24,7 +24,7 @@
 **      and send HK logic is sufficient 
 **
 ** References:
-**   1. OpenSatKit Object-based Application Developer's Guide
+**   1. cFS Basecamp Object-based Application Developer's Guide
 **   2. cFS Application Developer's Guide
 **
 */
@@ -70,8 +70,12 @@ DEFINE_ENUM(Config,APP_CONFIG)
 
 static CFE_EVS_BinFilter_t  EventFilters[] =
 {  
-   /* Event ID                 Mask */
-   {MQTT_CLIENT_YIELD_ERR_EID, CFE_EVS_FIRST_4_STOP}
+   /* Event ID                      Mask */
+   {MQTT_CLIENT_YIELD_ERR_EID,      CFE_EVS_FIRST_4_STOP},
+   {MQTT_CLIENT_PUBLISH_EID,        CFE_EVS_FIRST_4_STOP},
+   {MQTT_CLIENT_PUBLISH_ERR_EID,    CFE_EVS_FIRST_4_STOP},
+   {MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_FIRST_4_STOP},
+   {MSG_TRANS_PROCESS_SB_MSG_EID,   CFE_EVS_FIRST_4_STOP}
 
 };
 
@@ -155,6 +159,8 @@ bool MQTT_GW_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
 bool MQTT_GW_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
+
+   CFE_EVS_ResetAllFilters();
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
    TBLMGR_ResetStatus(TBLMGR_OBJ);
@@ -285,8 +291,8 @@ static int32 ProcessCommands(void)
          else
          {   
             CFE_EVS_SendEvent(MQTT_GW_INVALID_MID_EID, CFE_EVS_EventType_ERROR,
-                              "Received invalid command packet, MID = 0x%04X", 
-                              CFE_SB_MsgIdToValue(MsgId));
+                              "Received invalid command packet, MID = 0x%04X(%d)", 
+                              CFE_SB_MsgIdToValue(MsgId), CFE_SB_MsgIdToValue(MsgId));
          }
 
       } /* End if got message ID */
