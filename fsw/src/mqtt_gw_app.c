@@ -235,8 +235,10 @@ static int32 InitApp(void)
       CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
  
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONNECT_TO_MQTT_BROKER_CC, MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd, sizeof(MQTT_GW_ConnectToMqttBroker_Payload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_SB_TOPIC_TEST_CC,   MQTT_MGR_OBJ, MQTT_MGR_ConfigSbTopicTestCmd,   sizeof(MQTT_GW_ConfigSbTopicTest_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONNECT_TO_MQTT_BROKER_CC,   MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,   sizeof(MQTT_GW_ConnectToMqttBroker_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_TOPIC_PLUGIN_CC,      MQTT_MGR_OBJ, MQTT_MGR_ConfigTopicPluginCmd,     sizeof(MQTT_GW_ConfigTopicPlugin_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_SB_TOPIC_TEST_CC,     MQTT_MGR_OBJ, MQTT_MGR_ConfigSbTopicTestCmd,     sizeof(MQTT_GW_ConfigSbTopicTest_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_RECONNECT_TO_MQTT_BROKER_CC, MQTT_MGR_OBJ, MQTT_MGR_ReconnectToMqttBrokerCmd, 0);
          
       CFE_MSG_Init(CFE_MSG_PTR(MqttGw.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_HK_TLM_TOPICID)), sizeof(MQTT_GW_HkTlm_t));
 
@@ -345,11 +347,13 @@ void SendHousekeepingPkt(void)
    ** MQTT Data
    */
 
-   Payload->MqttYieldTime     = MqttGw.MqttMgr.MqttYieldTime;
-   Payload->SbPendTime        = MqttGw.MqttMgr.SbPendTime;
-   Payload->SbTopicTestActive = MqttGw.MqttMgr.SbTopicTestActive;
-   Payload->SbTopicTestId     = MqttGw.MqttMgr.SbTopicTestId;
-   Payload->SbTopicTestParam  = MqttGw.MqttMgr.SbTopicTestParam;
+   Payload->MqttYieldTime       = MqttGw.MqttMgr.MqttYieldTime;
+   Payload->SbPendTime          = MqttGw.MqttMgr.SbPendTime;
+   Payload->SbTopicTestActive   = MqttGw.MqttMgr.SbTopicTestActive;
+   Payload->SbTopicTestId       = MqttGw.MqttMgr.SbTopicTestId;
+   Payload->SbTopicTestParam    = MqttGw.MqttMgr.SbTopicTestParam;
+   Payload->UnpublishedSbMsgCnt = MqttGw.MqttMgr.UnpublishedSbMsgCnt;
+   Payload->ReconnectAttempts   = MqttGw.MqttMgr.ReconnectAttempts;
 
    Payload->MqttConnected = MqttGw.MqttMgr.MqttClient.Connected;
 
@@ -357,6 +361,16 @@ void SendHousekeepingPkt(void)
    Payload->InvalidMqttMsgCnt = MqttGw.MqttMgr.MsgTrans.InvalidMqttMsgCnt;
    Payload->ValidSbMsgCnt     = MqttGw.MqttMgr.MsgTrans.ValidSbMsgCnt;
    Payload->InvalidSbMsgCnt   = MqttGw.MqttMgr.MsgTrans.InvalidSbMsgCnt;
+
+   for (enum MQTT_GW_TopicPlugin i=0; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
+   {
+      MQTT_GW_PluginDescr_t *PluginDescr  = &Payload->TopicPlugin[i];
+      const MQTT_TOPIC_TBL_Topic_t *Topic = &MqttGw.MqttMgr.MsgTrans.TopicTbl.Data.Topic[i];
+      
+      strncpy(PluginDescr->Name, Topic->Mqtt, MQTT_GW_MAX_MQTT_TOPIC_LEN);
+      PluginDescr->Enabled = Topic->Enabled;
+      PluginDescr->SbRole  = Topic->SbRole;
+   }
 
    CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttGw.HkTlm.TelemetryHeader));
    CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttGw.HkTlm.TelemetryHeader), true);

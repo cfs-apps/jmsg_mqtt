@@ -30,7 +30,20 @@
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
 
-      <Define name="MQTT_TOPIC_LEN" value="100" shortDescription="Max number of characters in an MQTT topic "/>
+      <Define name="MAX_MQTT_TOPIC_LEN" value="48" shortDescription="Max number of characters in an MQTT topic"/>
+      <Define name="MAX_MQTT_TOPIC_PLUGIN_CNT" value="8" shortDescription="Maximum number of topic plugins"/>
+      
+      <StringDataType name="TopicName" length="${MAX_MQTT_TOPIC_LEN}" shortDescription="Topic name Text" />
+
+      <EnumeratedDataType name="TopicSbRole" shortDescription="" >
+        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="UNDEF"     value="0" shortDescription="Role not properly defined in JSON topic table" />
+          <Enumeration label="PUBLISH"   value="1" shortDescription="Receive MQTT message from broker, convert and publish them on the SB" />
+          <Enumeration label="SUBSCRIBE" value="2" shortDescription="Receive SB messages, convert and send them to MQTT broker" />
+          <Enumeration label="INVALID"   value="3" shortDescription="Role not properly defined in JSON topic table" />
+        </EnumerationList>
+      </EnumeratedDataType>
       
       <EnumeratedDataType name="TblId" shortDescription="Identifies different app tables. Must match order in which tables are registered during app initialization" >
         <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
@@ -39,15 +52,7 @@
         </EnumerationList>
       </EnumeratedDataType>
 
-      <EnumeratedDataType name="TestAction" shortDescription="" >
-        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
-        <EnumerationList>
-          <Enumeration label="Start" value="1" shortDescription="Start a test" />
-          <Enumeration label="Stop"  value="2" shortDescription="Stop a test" />
-        </EnumerationList>
-      </EnumeratedDataType>
-
-      <EnumeratedDataType name="PluginTopic" shortDescription="Used as indices so values start at 0. User name interface is 1..N" >
+      <EnumeratedDataType name="TopicPlugin" shortDescription="Used as indices so values start at 0. User name interface is 1..N" >
         <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
         <EnumerationList>
           <Enumeration label="1"     value="0" shortDescription="" />
@@ -58,10 +63,24 @@
           <Enumeration label="6"     value="5" shortDescription="" />
           <Enumeration label="7"     value="6" shortDescription="" />
           <Enumeration label="8"     value="7" shortDescription="" />
-          <Enumeration label="UNDEF" value="8" shortDescription="" />
+          <Enumeration label="UNDEF" value="${MAX_MQTT_TOPIC_PLUGIN_CNT}" shortDescription="" />
         </EnumerationList>
       </EnumeratedDataType>
 
+      <ContainerDataType name="PluginDescr" shortDescription="">
+        <EntryList>
+          <Entry name="Name"     type="TopicName"              shortDescription="See type" />
+          <Entry name="Enabled"  type="APP_C_FW/BooleanUint8"  shortDescription="See type" />
+          <Entry name="SbRole"   type="TopicSbRole"            shortDescription="See type" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ArrayDataType name="PluginDescrArray" dataTypeRef="PluginDescr">
+        <DimensionList>
+           <Dimension size="${MAX_MQTT_TOPIC_PLUGIN_CNT}"/>
+        </DimensionList>
+      </ArrayDataType>
+      
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
@@ -90,11 +109,18 @@
        </EntryList>
       </ContainerDataType>
 
+      <ContainerDataType name="ConfigTopicPlugin_Payload" shortDescription="Enable/disable a topic plugin">
+        <EntryList>
+          <Entry name="Id"     type="TopicPlugin"              shortDescription="Plugin Topic identifier" />
+          <Entry name="Action" type="APP_C_FW/ConfigEnaAction" shortDescription="Enable/disable a plugin" />
+       </EntryList>
+      </ContainerDataType>
+
       <ContainerDataType name="ConfigSbTopicTest_Payload" shortDescription="Start or stop a SB topic test">
         <EntryList>
-          <Entry name="Id"     type="PluginTopic"       shortDescription="Plugin Topic identifier" />
-          <Entry name="Action" type="TestAction"        shortDescription="Start/stop a test" />
-          <Entry name="Param"  type="BASE_TYPES/int16"  shortDescription="Topic specific test parameter" />
+          <Entry name="Id"     type="TopicPlugin"               shortDescription="Plugin Topic identifier" />
+          <Entry name="Action" type="APP_C_FW/ConfigExeAction"  shortDescription="Start/stop a test" />
+          <Entry name="Param"  type="BASE_TYPES/int16"          shortDescription="Topic specific test parameter" />
        </EntryList>
       </ContainerDataType>
 
@@ -113,13 +139,16 @@
           <Entry name="MqttYieldTime"       type="BASE_TYPES/uint32"   />
           <Entry name="SbPendTime"          type="BASE_TYPES/uint32"   />
           <Entry name="MqttConnected"       type="APP_C_FW/BooleanUint8" />
+          <Entry name="ReconnectAttempts"   type="BASE_TYPES/uint32"   />
+          <Entry name="UnpublishedSbMsgCnt" type="BASE_TYPES/uint32"   />
           <Entry name="ValidMqttMsgCnt"     type="BASE_TYPES/uint32"   />
           <Entry name="InvalidMqttMsgCnt"   type="BASE_TYPES/uint32"   />
           <Entry name="ValidSbMsgCnt"       type="BASE_TYPES/uint32"   />
           <Entry name="InvalidSbMsgCnt"     type="BASE_TYPES/uint32"   />
           <Entry name="SbTopicTestActive"   type="APP_C_FW/BooleanUint8" />
-          <Entry name="SbTopicTestId"       type="PluginTopic"         />
+          <Entry name="SbTopicTestId"       type="TopicPlugin"         />
           <Entry name="SbTopicTestParam"    type="BASE_TYPES/int16"    />
+          <Entry name="TopicPlugin"         type="PluginDescrArray"    />
         </EntryList>
       </ContainerDataType>
 
@@ -186,13 +215,28 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="ConfigSbTopicTest" baseType="CommandBase" shortDescription="Connect or reconnect to an MQTT broker">
+      <ContainerDataType name="ConfigTopicPlugin" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 1" />
         </ConstraintSet>
         <EntryList>
+          <Entry type="ConfigTopicPlugin_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="ConfigSbTopicTest" baseType="CommandBase" shortDescription="Connect or reconnect to an MQTT broker">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
+        </ConstraintSet>
+        <EntryList>
           <Entry type="ConfigSbTopicTest_Payload" name="Payload" />
         </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="ReconnectToMqttBroker" baseType="CommandBase" shortDescription="Connect to MQTT broker using current parameters">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 3" />
+        </ConstraintSet>
       </ContainerDataType>
 
       <!--****************************************-->
@@ -262,15 +306,15 @@
           <VariableSet>
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"             initialValue="${CFE_MISSION/MQTT_GW_CMD_TOPICID}" />
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"           initialValue="${CFE_MISSION/MQTT_GW_HK_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscretePluginTopicId"  initialValue="${CFE_MISSION/MQTT_GW_DISCRETE_PLUGIN_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RatePluginTopicId"      initialValue="${CFE_MISSION/MQTT_GW_RATE_PLUGIN_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DiscreteTopicPluginId"  initialValue="${CFE_MISSION/MQTT_GW_DISCRETE_PLUGIN_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="RateTopicPluginId"      initialValue="${CFE_MISSION/MQTT_GW_RATE_PLUGIN_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
             <ParameterMap interface="CMD"                 parameter="TopicId" variableRef="CmdTopicId" />
             <ParameterMap interface="HK_TLM"              parameter="TopicId" variableRef="HkTlmTopicId" />
-            <ParameterMap interface="DISCRETE_PLUGIN_TLM" parameter="TopicId" variableRef="DiscretePluginTopicId" />
-            <ParameterMap interface="RATE_PLUGIN_TLM"     parameter="TopicId" variableRef="RatePluginTopicId" />
+            <ParameterMap interface="DISCRETE_PLUGIN_TLM" parameter="TopicId" variableRef="DiscreteTopicPluginId" />
+            <ParameterMap interface="RATE_PLUGIN_TLM"     parameter="TopicId" variableRef="RateTopicPluginId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

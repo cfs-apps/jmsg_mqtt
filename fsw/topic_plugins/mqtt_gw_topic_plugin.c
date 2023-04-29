@@ -18,6 +18,9 @@
 ** Notes:
 **   1. See mqtt_gw/fsw/topics/mqtt_topic_plugin_guide.txt for 
 **      plugin creation and installation instructions
+**   2. SC_SIM is commented out to serve as an example topic plugin.
+**      To use SC_SIM the '**' comment lines can be commented out
+**      using the '//' syntax.
 ** 
 ** References:
 **   1. cFS Basecamp Object-based Application Developer's Guide
@@ -38,9 +41,15 @@
 #include "mqtt_gw_topic_sbmsg.h"
 #include "mqtt_gw_topic_rate.h"
 #include "mqtt_gw_topic_discrete.h"
+
+/** SC_SIM example
 #include "sc_sim_mqtt_topic_cmd.h"
 #include "sc_sim_mqtt_topic_mgmt.h"
 #include "sc_sim_mqtt_topic_model.h"
+#include "sc_sim_mqtt_topic_event_plbk.h"
+#include "sc_sim_mqtt_topic_event_msg.h"
+SC_SIM example **/
+
 
 /************************************/
 /** Local File Function Prototypes **/
@@ -57,13 +66,17 @@ static void StubSbMsgTest(bool Init, int16 Param);
 
 // Declare topic plugin objects
 
-static MQTT_GW_TOPIC_SBMSG_Class_t      MqttGwTopicSbMsg;
-static MQTT_GW_TOPIC_DISCRETE_Class_t   MqttGwTopicDiscrete;
-static MQTT_GW_TOPIC_RATE_Class_t       MqttGwTopicRate;
+static MQTT_GW_TOPIC_SBMSG_Class_t     MqttGwTopicSbMsg;
+static MQTT_GW_TOPIC_DISCRETE_Class_t  MqttGwTopicDiscrete;
+static MQTT_GW_TOPIC_RATE_Class_t      MqttGwTopicRate;
 
-static SC_SIM_MQTT_TOPIC_CMD_Class_t    ScSimTopicCmd;
-static SC_SIM_MQTT_TOPIC_MGMT_Class_t   ScSimTopicMgmt;
-static SC_SIM_MQTT_TOPIC_MODEL_Class_t  ScSimTopicModel;
+/** SC_SIM example
+static SC_SIM_MQTT_TOPIC_CMD_Class_t        ScSimTopicCmd;
+static SC_SIM_MQTT_TOPIC_MGMT_Class_t       ScSimTopicMgmt;
+static SC_SIM_MQTT_TOPIC_MODEL_Class_t      ScSimTopicModel;
+static SC_SIM_MQTT_TOPIC_EVENT_PLBK_Class_t ScSimTopicEventPlbk;
+static SC_SIM_MQTT_TOPIC_EVENT_MSG_Class_t  ScSimTopicEventMsg;
+SC_SIM example **/
 
 
 /******************************************************************************
@@ -74,6 +87,9 @@ static SC_SIM_MQTT_TOPIC_MODEL_Class_t  ScSimTopicModel;
 **   1. The design convention is for topic objects to receive a
 **      CFE_SB_MsgId_t type so TopicIds defined in the JSON table
 **      must be converted to message IDs. 
+**   2. Always construct plugins regardless of whether they are enabled. This
+**      allows plugins to be enabled/disabled during runtime. If a topic'sbrk
+**      JSON is invalid the plugin will be automatically disabled.
 **
 */
 void MQTT_GW_TOPIC_PLUGIN_Constructor(const MQTT_TOPIC_TBL_Data_t *TopicTbl,
@@ -81,56 +97,66 @@ void MQTT_GW_TOPIC_PLUGIN_Constructor(const MQTT_TOPIC_TBL_Data_t *TopicTbl,
                                       uint32 DiscreteTlmTopicId, uint32 TunnelTlmTopicId)
 {
 
-   for (int i=0; i < MQTT_GW_PluginTopic_Enum_t_MAX; i++)
+   for (enum MQTT_GW_TopicPlugin i=0; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
    {
-      if (TopicTbl->Topic[i].Enabled)
+      switch (i)
       {
-         switch (i)
-         {
-            case MQTT_GW_PluginTopic_1:
-               MQTT_GW_TOPIC_SBMSG_Constructor(&MqttGwTopicSbMsg, &PluginFuncTbl[i],
-                                               CFE_SB_ValueToMsgId(DiscreteTlmTopicId),
-                                               CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe),
-                                               CFE_SB_ValueToMsgId(TunnelTlmTopicId));
-               break;
-            case MQTT_GW_PluginTopic_2:
-               MQTT_GW_TOPIC_DISCRETE_Constructor(&MqttGwTopicDiscrete, &PluginFuncTbl[i],
-                                                  CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
-            
-               break;
-            case MQTT_GW_PluginTopic_3:
-               MQTT_GW_TOPIC_RATE_Constructor(&MqttGwTopicRate, &PluginFuncTbl[i],
+         case MQTT_GW_TopicPlugin_1:
+            MQTT_GW_TOPIC_SBMSG_Constructor(&MqttGwTopicSbMsg, &PluginFuncTbl[i],
+                                            CFE_SB_ValueToMsgId(DiscreteTlmTopicId),
+                                            CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe),
+                                            CFE_SB_ValueToMsgId(TunnelTlmTopicId));
+            break;
+         case MQTT_GW_TopicPlugin_2:
+            MQTT_GW_TOPIC_DISCRETE_Constructor(&MqttGwTopicDiscrete, &PluginFuncTbl[i],
                                                CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
-               break;
-            case MQTT_GW_PluginTopic_4:
-               SC_SIM_MQTT_TOPIC_CMD_Constructor(&ScSimTopicCmd, &PluginFuncTbl[i],
-                                                 CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
-               break;
-            case MQTT_GW_PluginTopic_5:
-               SC_SIM_MQTT_TOPIC_MGMT_Constructor(&ScSimTopicMgmt, &PluginFuncTbl[i],
-                                                  CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
-               break;
-            case MQTT_GW_PluginTopic_6:
-               SC_SIM_MQTT_TOPIC_MODEL_Constructor(&ScSimTopicModel, &PluginFuncTbl[i],
-                                                   CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
-               break;
-            case MQTT_GW_PluginTopic_7:
-            case MQTT_GW_PluginTopic_8:
-            default:
+         
+            break;
+
+         case MQTT_GW_TopicPlugin_3:
+            MQTT_GW_TOPIC_RATE_Constructor(&MqttGwTopicRate, &PluginFuncTbl[i],
+                                           CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+            break;
+
+/** SC_SIM example
+         case MQTT_GW_TopicPlugin_4:
+            SC_SIM_MQTT_TOPIC_CMD_Constructor(&ScSimTopicCmd, &PluginFuncTbl[i],
+                                              CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+            break;
+         case MQTT_GW_TopicPlugin_5:
+            SC_SIM_MQTT_TOPIC_MGMT_Constructor(&ScSimTopicMgmt, &PluginFuncTbl[i],
+                                               CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+            break;
+         case MQTT_GW_TopicPlugin_6:
+            SC_SIM_MQTT_TOPIC_MODEL_Constructor(&ScSimTopicModel, &PluginFuncTbl[i],
+                                                CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+            break;
+
+         case MQTT_GW_TopicPlugin_7:
+            SC_SIM_MQTT_TOPIC_EVENT_PLBK_Constructor(&ScSimTopicEventPlbk, &PluginFuncTbl[i],
+                                                     CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+            break;
+
+         case MQTT_GW_TopicPlugin_8:
+            SC_SIM_MQTT_TOPIC_EVENT_MSG_Constructor(&ScSimTopicEventMsg,&PluginFuncTbl[i],
+                                                    CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));   
+            break;
+SC_SIM example **/
+         default:
+            PluginFuncTbl[i].CfeToJson = StubCfeToJson;
+            PluginFuncTbl[i].JsonToCfe = StubJsonToCfe;
+            PluginFuncTbl[i].SbMsgTest = StubSbMsgTest;
+            if (TopicTbl->Topic[i].Enabled)
+            {
+               MQTT_TOPIC_TBL_DisablePlugin(i);
                CFE_EVS_SendEvent(MQTT_GW_TOPIC_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
-                                 "Plugin topic %d is enabled in the topic table, but has not had a constructor installed",
-                                 (i+1));
-            
-               break;
-                           
-         } // End switch
-      }
-      else
-      {
-         PluginFuncTbl[i].CfeToJson = StubCfeToJson;
-         PluginFuncTbl[i].JsonToCfe = StubJsonToCfe;
-         PluginFuncTbl[i].SbMsgTest = StubSbMsgTest;
-      }
+                                 "Disabling plugin topic ID %d(index %d) that is enabled in the topic table without a constructor installed.",
+                                 (i+1), i);
+            }         
+            break;
+                        
+      } // End switch
+
    } // End plugin loop
     
 } /* MQTT_GW_TOPIC_PLUGIN_Constructor() */

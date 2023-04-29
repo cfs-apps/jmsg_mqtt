@@ -50,10 +50,10 @@
 ** Event Message IDs
 */
 
-#define MQTT_MGR_SUBSCRIBE_EID        (MQTT_MGR_BASE_EID + 0)
-#define MQTT_MGR_SUBSCRIBE_ERR_EID    (MQTT_MGR_BASE_EID + 1)
-#define MQTT_MGR_CONFIG_TEST_EID      (MQTT_MGR_BASE_EID + 2)
-#define MQTT_MGR_CONFIG_TEST_ERR_EID  (MQTT_MGR_BASE_EID + 3)
+#define MQTT_MGR_SUBSCRIBE_EID                (MQTT_MGR_BASE_EID + 0)
+#define MQTT_MGR_UNSUBSCRIBE_EID              (MQTT_MGR_BASE_EID + 1)
+#define MQTT_MGR_CONFIG_TOPIC_PLUGIN_EID      (MQTT_MGR_BASE_EID + 2)
+#define MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID (MQTT_MGR_BASE_EID + 3)
 
 
 /**********************/
@@ -68,12 +68,18 @@ typedef struct
 
    uint32  MqttYieldTime;
    uint32  SbPendTime;
+   uint32  UnpublishedSbMsgCnt;
+   
+   bool    ReconnectEnabled;
+   uint32  ReconnectPeriod;
+   uint32  ReconnectDelayCnt;
+   uint32  ReconnectAttempts;
    
    CFE_SB_PipeId_t TopicPipe;
    
    bool    SbTopicTestActive;
    int16   SbTopicTestParam;
-   MQTT_GW_PluginTopic_Enum_t  SbTopicTestId;
+   MQTT_GW_TopicPlugin_Enum_t  SbTopicTestId;
    
    /*
    ** Contained Objects
@@ -118,14 +124,27 @@ bool MQTT_MGR_ChildTaskCallback(CHILDMGR_Class_t *ChildMgr);
 ** Notes:
 **   1. Topic tests verify the topic SB-to-MQTT translation path. The tests 
 **      create and send SB topic messages. These messages are looped back
-**      to MQTT_GW whcih causes the CfeToJson transaltion to occur. The tests
+**      to MQTT_GW whcih causes the CfeToJson translation to occur. The tests
 **      are continuously run by MQTT_MGR_Execute() until they are commanded
 **      to stop. 
-**   2. In addition to testing the tranlation process they are useful for 
+**   2. In addition to testing the translation process they are useful for 
 **      verifying web apps that are processing the MQTT messages.
 **   3. Signature must match CMDMGR_CmdFuncPtr_t
+**
 */
 bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: MQTT_MGR_ConfigTopicPluginCmd
+**
+** Enable/disable a plugin topic
+**
+** Notes:
+**   1. Signature must match CMDMGR_CmdFuncPtr_t
+**
+*/
+bool MQTT_MGR_ConfigTopicPluginCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -135,6 +154,7 @@ bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *Ms
 **
 ** Notes:
 **   1. Signature must match CMDMGR_CmdFuncPtr_t
+**
 */
 bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
@@ -153,6 +173,13 @@ bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *
 **
 */
 void MQTT_MGR_Execute(uint32 PerfId);
+
+
+/******************************************************************************
+** Function: MQTT_MGR_ReconnectToMqttBrokerCmd
+**
+*/
+bool MQTT_MGR_ReconnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************

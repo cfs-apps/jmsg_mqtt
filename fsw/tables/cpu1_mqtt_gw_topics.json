@@ -6,7 +6,8 @@
                     "'cfe' is a topic id that is read from the SB and published to an MQTT broker",
                     "'sb-role' entry defines the messages role from a SB perpective:",
                     "pub: read (subscribe) an MQTT JSON message from a MQTT broker and publish it on the SB",
-                    "sub: read a SB message (subscribe) and publish it to a MQTT broker"],
+                    "sub: read a SB message (subscribe) and publish it to a MQTT broker",
+                    "The default cfe-4 to cfe-8 entries are for SC_SIM to serve as an example"],
 
    "topic-id-map": { 
    
@@ -18,7 +19,9 @@
       "SC_SIM_CMD_TOPICID": "cfe-4",
       "SC_SIM_MGMT_TLM_TOPICID":  "cfe-5",
       "SC_SIM_MODEL_TLM_TOPICID": "cfe-6",
-
+      "KIT_TO_EVENT_PLBK_TLM_TOPICID": "cfe-7",
+      "EVS_LONG_EVENT_MSG_TOPICID": "cfe-8",
+      
       "end": true
       
    },
@@ -42,7 +45,7 @@
           "mqtt":  "basecamp/demo/sc/rate",
           "cfe-3": 2156,
           "cfe": 2156,
-          "sb-role": "sub",
+          "sb-role": "pub",
           "enabled": "true"
        },
        {
@@ -63,6 +66,20 @@
           "mqtt":  "basecamp/sc_sim/model",
           "cfe-6": 2162,
           "cfe": 2162,
+          "sb-role": "sub",
+          "enabled": "false"
+       },
+       {
+          "mqtt":  "basecamp/sc_sim/event_plbk",
+          "cfe-7": 2143,
+          "cfe": 2143,
+          "sb-role": "sub",
+          "enabled": "false"
+       },
+       {
+          "mqtt":  "basecamp/sc_sim/event",
+          "cfe-8": 2118,
+          "cfe": 2118,
           "sb-role": "sub",
           "enabled": "false"
        }

@@ -38,14 +38,14 @@
 
 #include "app_cfg.h"
 #include "mqtt_topic_tbl.h"
+#include "mqtt_gw_eds_defines.h"
 
 /***********************/
 /** Macro Definitions **/
 /***********************/
 
 
-#define JSON_MAX_KW_LEN     10  // Maximum length of short keywords
-#define JSON_MAX_TOPIC_LEN  MQTT_TOPIC_TBL_MAX_TOPIC_LEN
+#define JSON_MAX_KW_LEN  10  // Maximum length of short keywords
 
 /*
 ** Event Message IDs
@@ -55,6 +55,8 @@
 #define MQTT_TOPIC_TBL_DUMP_ERR_EID   (MQTT_TOPIC_TBL_BASE_EID + 1)
 #define MQTT_TOPIC_TBL_LOAD_ERR_EID   (MQTT_TOPIC_TBL_BASE_EID + 2)
 #define MQTT_TOPIC_TBL_STUB_EID       (MQTT_TOPIC_TBL_BASE_EID + 3)
+#define MQTT_TOPIC_TBL_ENA_PLUGIN_EID (MQTT_TOPIC_TBL_BASE_EID + 4)
+#define MQTT_TOPIC_TBL_DIS_PLUGIN_EID (MQTT_TOPIC_TBL_BASE_EID + 5)
 
 /**********************/
 /** Type Definitions **/
@@ -69,18 +71,21 @@
 typedef struct
 {
 
-   char    Mqtt[JSON_MAX_TOPIC_LEN];
+   char    Mqtt[MQTT_GW_MAX_MQTT_TOPIC_LEN];
    uint16  Cfe;
-   char    SbRole[JSON_MAX_KW_LEN];
+   char    SbStr[JSON_MAX_KW_LEN];
    char    EnaStr[JSON_MAX_KW_LEN];
+   
+   // These are set based on JSON strings
    bool    Enabled;
+   MQTT_GW_TopicSbRole_Enum_t SbRole;
    
 } MQTT_TOPIC_TBL_Topic_t;
 
 typedef struct
 {
 
-  MQTT_TOPIC_TBL_Topic_t Topic[MQTT_GW_PluginTopic_Enum_t_MAX];
+  MQTT_TOPIC_TBL_Topic_t Topic[MQTT_GW_TopicPlugin_Enum_t_MAX];
    
 } MQTT_TOPIC_TBL_Data_t;
 
@@ -159,6 +164,18 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const c
 
 
 /******************************************************************************
+** Function: MQTT_TOPIC_TBL_DisablePlugin
+**
+** Disable a topic plugin.
+** 
+** Notes:
+**   1. Sends events for errors and not for success.
+**
+*/
+bool MQTT_TOPIC_TBL_DisablePlugin(enum MQTT_GW_TopicPlugin TopicPlugin);
+
+
+/******************************************************************************
 ** Function: MQTT_TOPIC_TBL_DumpCmd
 **
 ** Command to write the table data from memory to a JSON file.
@@ -173,41 +190,68 @@ bool MQTT_TOPIC_TBL_DumpCmd(TBLMGR_Tbl_t *Tbl, uint8 DumpType, const char *Filen
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_TBL_GetCfeToJson
+** Function: MQTT_TOPIC_TBL_EnablePlugin
 **
-** Return a pointer to the CfeToJson conversion function for 'Index' and return
-** a pointer to the JSON topic string in JsonMsgTopic.
+** Enable a topic plugin.
 ** 
 ** Notes:
-**   1. Index must be less than MQTT_GW_PluginTopic_Enum_t_MAX
+**   1. Sends events for errors and not for success.
 **
 */
-MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(uint8 Index,
+bool MQTT_TOPIC_TBL_EnablePlugin(enum MQTT_GW_TopicPlugin TopicPlugin);
+
+
+/******************************************************************************
+** Function: MQTT_TOPIC_TBL_GetCfeToJson
+**
+** Return a pointer to the CfeToJson conversion function for 'TopicPlugin'
+** and return a pointer to the JSON topic string in JsonMsgTopic.
+** 
+** Notes:
+**   1. TopicPlugin must be less than MQTT_GW_TopicPlugin_Enum_t_MAX
+**
+*/
+MQTT_TOPIC_TBL_CfeToJson_t MQTT_TOPIC_TBL_GetCfeToJson(enum MQTT_GW_TopicPlugin TopicPlugin,
                                                        const char **JsonMsgTopic);
+
+
+/******************************************************************************
+** Function: MQTT_TOPIC_TBL_GetDisabledTopic
+**
+** Return a pointer to the table topic entry identified by 'TopicPlugin'.
+** 
+** Notes:
+**   1. A special case arose for getting a disabled topic pointer. Rather than
+**      add a parameter MQTT_TOPIC_TBL_GetTopic() in whcih this one case would
+**      be the exception, it seemed cleaner to add another function that has
+**      some duplicate functionality.
+**
+*/
+const MQTT_TOPIC_TBL_Topic_t *MQTT_TOPIC_TBL_GetDisabledTopic(enum MQTT_GW_TopicPlugin TopicPlugin);
 
 
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_GetTopic
 **
-** Return a pointer to the table entry identified by 'Index'.
+** Return a pointer to the table entry identified by 'TopicPlugin'.
 ** 
 ** Notes:
-**   1. Index must be less than MQTT_GW_PluginTopic_Enum_t_MAX
+**   1. TopicPlugin must be less than MQTT_GW_TopicPlugin_Enum_t_MAX
 **
 */
-const MQTT_TOPIC_TBL_Topic_t *MQTT_TOPIC_TBL_GetTopic(uint8 Index);
+const MQTT_TOPIC_TBL_Topic_t *MQTT_TOPIC_TBL_GetTopic(enum MQTT_GW_TopicPlugin TopicPlugin);
 
 
 /******************************************************************************
 ** Function: MQTT_TOPIC_TBL_GetJsonToCfe
 **
-** Return a pointer to the JsonToCfe conversion function for 'Index'.
+** Return a pointer to the JsonToCfe conversion function for 'TopicPlugin'.
 ** 
 ** Notes:
-**   1. Index must be less than MQTT_GW_PluginTopic_Enum_t_MAX
+**   1. TopicPlugin must be less than MQTT_GW_TopicPlugin_Enum_t_MAX
 **
 */
-MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(uint8 Index);
+MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(enum MQTT_GW_TopicPlugin TopicPlugin);
 
 
 /******************************************************************************
@@ -225,15 +269,15 @@ bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filen
 
 
 /******************************************************************************
-** Function: MQTT_TOPIC_TBL_MsgIdToIndex
+** Function: MQTT_TOPIC_TBL_MsgIdToTopicPlugin
 **
-** Return an topic table index for a message ID
+** Return a topic table index for a message ID
 ** 
 ** Notes:
-**   1. MQTT_GW_PluginTopic_UNDEF is returned if the message ID isn't found.
+**   1. MQTT_GW_TopicPlugin_UNDEF is returned if the message ID isn't found.
 **
 */
-uint8 MQTT_TOPIC_TBL_MsgIdToIndex(CFE_SB_MsgId_t MsgId);
+uint8 MQTT_TOPIC_TBL_MsgIdToTopicPlugin(CFE_SB_MsgId_t MsgId);
 
 
 /******************************************************************************
@@ -253,19 +297,19 @@ void MQTT_TOPIC_TBL_ResetStatus(void);
 ** Execute a topic's SB message test.
 ** 
 ** Notes:
-**   1. Index must be less than MQTT_GW_PluginTopic_Enum_t_MAX
+**   1. Index must be less than MQTT_GW_TopicPlugin_Enum_t_MAX
 **
 */
-void MQTT_TOPIC_TBL_RunSbMsgTest(uint8 Index, bool Init, int16 Param);
+void MQTT_TOPIC_TBL_RunSbMsgTest(enum MQTT_GW_TopicPlugin TopicPlugin, bool Init, int16 Param);
 
 
 /******************************************************************************
-** Function: ValidId
+** Function: ValidTopicPlugin
 **
-** In addition to being in range, valid means that the ID has been defined.
+** In addition to being in range, valid means that the TopicPlugin has been
+** defined.
 */
-bool MQTT_TOPIC_TBL_ValidId(uint8 Index);
-
+bool MQTT_TOPIC_TBL_ValidTopicPlugin(enum MQTT_GW_TopicPlugin TopicPlugin);
 
 
 #endif /* _mqtt_topic_tbl_ */

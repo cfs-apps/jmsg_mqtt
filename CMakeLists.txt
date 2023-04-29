@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6.4)
 project(CFS_MQTT_GW C)
 
+# SC_SIM is included to serve as an example topic plugin
 include_directories(fsw/mission_inc)
 include_directories(fsw/platform_inc)
 include_directories(fsw/src)

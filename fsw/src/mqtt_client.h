@@ -51,6 +51,7 @@
 #define MQTT_CLIENT_PUBLISH_ERR_EID    (MQTT_CLIENT_BASE_EID + 5)
 #define MQTT_CLIENT_YIELD_ERR_EID      (MQTT_CLIENT_BASE_EID + 6)
 
+#define MAX_CLIENT_PARAM_STR_LEN  64
 
 /**********************/
 /** Type Definitions **/
@@ -87,6 +88,10 @@ typedef struct
 {
 
    bool    Connected;
+   
+   char    BrokerAddress[MAX_CLIENT_PARAM_STR_LEN];
+   uint32  BrokerPort;
+   char    ClientName[MAX_CLIENT_PARAM_STR_LEN];
    
    MQTTMessage PubMsg;
    
@@ -150,6 +155,15 @@ bool MQTT_CLIENT_Publish(const char *Topic, const char *Payload);
 
 
 /******************************************************************************
+** Function: MQTT_CLIENT_Reconnect
+**
+** Reconnect to an MQTT broker using current parameters
+**
+*/
+bool MQTT_CLIENT_Reconnect(void);
+
+
+/******************************************************************************
 ** Function: MQTT_CLIENT_ResetStatus
 **
 ** Reset counters and status flags to a known reset state.
@@ -166,6 +180,13 @@ void MQTT_CLIENT_ResetStatus(void);
 */
 bool MQTT_CLIENT_Subscribe(const char *Topic, int Qos, 
                            MQTT_CLIENT_MsgCallback_t MsgCallbackFunc);
+
+
+/******************************************************************************
+** Function: MQTT_CLIENT_Unsubscribe
+**
+*/
+bool MQTT_CLIENT_Unsubscribe(const char *Topic);
 
 
 /******************************************************************************

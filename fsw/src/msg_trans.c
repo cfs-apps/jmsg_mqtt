@@ -83,9 +83,9 @@ void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
    
    MQTTMessage* MsgPtr = MsgData->message;
 
-   uint16  id = 0;
+   enum MQTT_GW_TopicPlugin topic = MQTT_GW_TopicPlugin_Enum_t_MIN;
    uint16  TopicLen;
-   char    TopicStr[MQTT_TOPIC_TBL_MAX_TOPIC_LEN];
+   char    TopicStr[MQTT_GW_MAX_MQTT_TOPIC_LEN];
    bool    MsgFound = false;
    const MQTT_TOPIC_TBL_Topic_t *Topic;
    MQTT_TOPIC_TBL_JsonToCfe_t JsonToCfe;
@@ -103,16 +103,16 @@ void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
       CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                         "MsgPtr->payloadlen=%d", (int)MsgPtr->payloadlen);
 
-      while (!MsgFound && id < MQTT_GW_PluginTopic_Enum_t_MAX)
+      while (!MsgFound && topic < MQTT_GW_TopicPlugin_Enum_t_MAX)
       {
 
-         Topic = MQTT_TOPIC_TBL_GetTopic(id);
+         Topic = MQTT_TOPIC_TBL_GetTopic(topic);
          if (Topic != NULL)
          {
             
             TopicLen = strlen(Topic->Mqtt);
             
-            if (TopicLen < MQTT_TOPIC_TBL_MAX_TOPIC_LEN)
+            if (TopicLen < MQTT_GW_MAX_MQTT_TOPIC_LEN)
             {
                CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                                  "Table topic name=%s, length=%d", Topic->Mqtt, TopicLen);
@@ -130,12 +130,12 @@ void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
             {
                CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR,
                                  "Table topic name %s with length %d exceeds maximum length %d", 
-                                 Topic->Mqtt, TopicLen, MQTT_GW_PluginTopic_Enum_t_MAX);               
+                                 Topic->Mqtt, TopicLen, MQTT_GW_MAX_MQTT_TOPIC_LEN);               
             }
          }
          if (!MsgFound)
          {
-            id++;
+            topic++;
          }
       } /* End while loop */
 
@@ -143,9 +143,9 @@ void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
       {
             
          CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
-                           "MSG_TRANS_ProcessMqttMsg: Found message at index %d", id); 
+                           "MSG_TRANS_ProcessMqttMsg: Found message at index %d", topic); 
                               
-         JsonToCfe = MQTT_TOPIC_TBL_GetJsonToCfe(id);    
+         JsonToCfe = MQTT_TOPIC_TBL_GetJsonToCfe(topic);    
        
          if (JsonToCfe(&CfeMsg, &MsgData->topicName->lenstring.data[TopicLen], MsgPtr->payloadlen))
          {         
@@ -175,7 +175,7 @@ void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
          {
             CFE_EVS_SendEvent(MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR,
                               "MSG_TRANS_ProcessMqttMsg: Error creating SB message from JSON topic %s, Id %d",
-                               TopicStr, id); 
+                               TopicStr, topic); 
          }
          
       } /* End if message found */
@@ -227,7 +227,7 @@ bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
                         "MSG_TRANS_ProcessSbMsg: Received SB message ID 0x%04X(%d)", 
                         CFE_SB_MsgIdToValue(MsgId), CFE_SB_MsgIdToValue(MsgId)); 
       
-      if ((TopicIndex = MQTT_TOPIC_TBL_MsgIdToIndex(MsgId)) != MQTT_GW_PluginTopic_UNDEF)
+      if ((TopicIndex = MQTT_TOPIC_TBL_MsgIdToTopicPlugin(MsgId)) != MQTT_GW_TopicPlugin_UNDEF)
       {
          
          CfeToJson = MQTT_TOPIC_TBL_GetCfeToJson(TopicIndex, &JsonMsgTopic);    

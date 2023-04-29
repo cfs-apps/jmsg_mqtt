@@ -34,6 +34,8 @@
 */
 
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 
 #include "mqtt_client.h"
 
@@ -56,13 +58,14 @@ void MQTT_CLIENT_Constructor(MQTT_CLIENT_Class_t *MqttClientPtr,
                              const INITBL_Class_t *IniTbl)
 {
 
-   const char *BrokerAddress = INITBL_GetStrConfig(IniTbl, CFG_MQTT_BROKER_ADDRESS);
-   uint32     BrokerPort     = INITBL_GetIntConfig(IniTbl, CFG_MQTT_BROKER_PORT);
-   const char *ClientName    = INITBL_GetStrConfig(IniTbl, CFG_MQTT_CLIENT_NAME);
-    
    MqttClient = MqttClientPtr;
    CFE_PSP_MemSet((void*)MqttClient, 0, sizeof(MQTT_CLIENT_Class_t));
    
+   srand(time(NULL));
+   strncpy(MqttClient->BrokerAddress,INITBL_GetStrConfig(IniTbl, CFG_MQTT_BROKER_ADDRESS),MAX_CLIENT_PARAM_STR_LEN);
+   MqttClient->BrokerPort = INITBL_GetIntConfig(IniTbl, CFG_MQTT_BROKER_PORT);
+   sprintf(MqttClient->ClientName,"%s-%d", INITBL_GetStrConfig(IniTbl, CFG_MQTT_CLIENT_NAME), (rand() % 10000));
+
    MqttClient->PubMsg.qos = MQTT_CLIENT_QOS0;
    MqttClient->PubMsg.retained = 0;
    MqttClient->PubMsg.dup = 0;
@@ -70,7 +73,7 @@ void MQTT_CLIENT_Constructor(MQTT_CLIENT_Class_t *MqttClientPtr,
    MqttClient->PubMsg.payload = TestPayload;
    MqttClient->PubMsg.id = strlen(TestPayload);
 
-   MQTT_CLIENT_Connect(ClientName, BrokerAddress, BrokerPort);
+   MQTT_CLIENT_Connect(MqttClient->ClientName, MqttClient->BrokerAddress, MqttClient->BrokerPort);
 
 } /* End MQTT_CLIENT_Constructor() */
    
@@ -205,6 +208,20 @@ bool MQTT_CLIENT_Publish(const char *Topic, const char *Payload)
 
 
 /******************************************************************************
+** Function: MQTT_CLIENT_Reconnect
+**
+** Reconnect to an MQTT broker using current parameters
+**
+*/
+bool MQTT_CLIENT_Reconnect(void)
+{
+   
+   return MQTT_CLIENT_Connect(MqttClient->ClientName, MqttClient->BrokerAddress, MqttClient->BrokerPort);
+   
+} /* MQTT_CLIENT_Reconnect() */
+
+
+/******************************************************************************
 ** Function: MQTT_CLIENT_ResetStatus
 **
 ** Reset counters and status flags to a known reset state.
@@ -231,12 +248,30 @@ bool MQTT_CLIENT_Subscribe(const char *Topic, int Qos,
    
    bool RetStatus = false;
    
-   RetStatus = (MQTTSubscribe(&MqttClient->Client, Topic, Qos, MsgCallbackFunc) == SUCCESS);
-
+   if (MqttClient->Connected)
+   {
+      RetStatus = (MQTTSubscribe(&MqttClient->Client, Topic, Qos, MsgCallbackFunc) == SUCCESS);
+   }
+   
    return RetStatus;
    
 } /* End MQTT_CLIENT_Subscribe() */
 
+
+/******************************************************************************
+** Function: MQTT_CLIENT_Unsubscribe
+**
+*/
+bool MQTT_CLIENT_Unsubscribe(const char *Topic)
+{
+   
+   bool RetStatus = false;
+   
+   RetStatus = (MQTTUnsubscribe(&MqttClient->Client, Topic) == SUCCESS);
+
+   return RetStatus;
+   
+} /* End MQTT_CLIENT_Unsubscribe() */
 
 
 /******************************************************************************
