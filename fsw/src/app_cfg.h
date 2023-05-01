@@ -52,7 +52,7 @@
 */
 
 #define  MQTT_GW_MAJOR_VER      1
-#define  MQTT_GW_MINOR_VER      0
+#define  MQTT_GW_MINOR_VER      1
 
 /******************************************************************************
 **  INI File
