@@ -38,7 +38,7 @@
       "MQTT_CLIENT_NAME":       "basecamp-dev",
       "MQTT_CLIENT_YIELD_TIME": 1000,
       
-      "MQTT_TOPIC_TBL_DEF_FILE": "/cf/mqtt_gw_topic_plugins.json",
+      "MQTT_TOPIC_TBL_DEF_FILE": "/cf/mqtt_gw_topics.json",
             
       "CHILD_NAME":       "MQTT_CHILD",
       "CHILD_STACK_SIZE": 32768,
