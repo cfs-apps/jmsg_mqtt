@@ -54,11 +54,22 @@
 #define MQTT_MGR_UNSUBSCRIBE_EID              (MQTT_MGR_BASE_EID + 1)
 #define MQTT_MGR_CONFIG_TOPIC_PLUGIN_EID      (MQTT_MGR_BASE_EID + 2)
 #define MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID (MQTT_MGR_BASE_EID + 3)
-
+#define MQTT_MGR_RECONNECT_EID                (MQTT_MGR_BASE_EID + 4)
 
 /**********************/
 /** Type Definitions **/
 /**********************/
+
+
+typedef struct
+{
+   
+   bool    Enabled;
+   uint32  Period;
+   uint32  DelayCnt;
+   uint32  Attempts;
+
+} MQTT_MGR_Reconnect_t;
 
 
 typedef struct
@@ -70,10 +81,7 @@ typedef struct
    uint32  SbPendTime;
    uint32  UnpublishedSbMsgCnt;
    
-   bool    ReconnectEnabled;
-   uint32  ReconnectPeriod;
-   uint32  ReconnectDelayCnt;
-   uint32  ReconnectAttempts;
+   MQTT_MGR_Reconnect_t Reconnect;
    
    CFE_SB_PipeId_t TopicPipe;
    

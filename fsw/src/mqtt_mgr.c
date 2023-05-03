@@ -58,10 +58,12 @@ typedef enum
 /** Local Function Prototypes **/
 /*******************************/
 
+static void MqttConnectionError(void);
 static void ProcessSbTopicMsgs(uint32 PerfId);
 static void SubscribeToTopicTblMsgs(TopicSubscribeToEnum_t SubscribeTo);
 static TopicSubscribeStatusEnum_t SubscribeToTopicMsg(enum MQTT_GW_TopicPlugin TopicPlugin, TopicSubscribeToEnum_t SubscribeTo);
 static bool UnsubscribeFromTopicMsg(enum MQTT_GW_TopicPlugin TopicPlugin);
+
 
 /*****************/
 /** Global Data **/
@@ -93,9 +95,9 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
    MqttMgr->MqttYieldTime = INITBL_GetIntConfig(IniTbl, CFG_MQTT_CLIENT_YIELD_TIME);
    MqttMgr->SbPendTime    = INITBL_GetIntConfig(IniTbl, CFG_TOPIC_PIPE_PEND_TIME);
    
-   MqttMgr->ReconnectEnabled  = (INITBL_GetIntConfig(IniTbl, CFG_MQTT_ENABLE_RECONNECT) == 1);
-   MqttMgr->ReconnectPeriod   = INITBL_GetIntConfig(IniTbl, CFG_MQTT_RECONNECT_PERIOD);
-   MqttMgr->ReconnectDelayCnt = 0;
+   MqttMgr->Reconnect.Enabled  = (INITBL_GetIntConfig(IniTbl, CFG_MQTT_ENABLE_RECONNECT) == 1);
+   MqttMgr->Reconnect.Period   = INITBL_GetIntConfig(IniTbl, CFG_MQTT_RECONNECT_PERIOD);
+   MqttMgr->Reconnect.DelayCnt = MqttMgr->Reconnect.Period;
    
    CFE_SB_CreatePipe(&MqttMgr->TopicPipe, INITBL_GetIntConfig(IniTbl, CFG_TOPIC_PIPE_DEPTH),
                      INITBL_GetStrConfig(IniTbl, CFG_TOPIC_PIPE_NAME));
@@ -126,20 +128,8 @@ bool MQTT_MGR_ChildTaskCallback(CHILDMGR_Class_t *ChildMgr)
 
    if (!ClientYield)
    {
-      if (MqttMgr->ReconnectEnabled)
-      {
-         MqttMgr->ReconnectDelayCnt++;
-         if (MqttMgr->ReconnectDelayCnt >= MqttMgr->ReconnectPeriod)
-         {
-            if (MQTT_CLIENT_Reconnect())
-            {
-               SubscribeToTopicTblMsgs(TOPIC_SUB_TO_MQTT);
-            }
-            MqttMgr->ReconnectAttempts++; 
-            MqttMgr->ReconnectDelayCnt = 0;
-         }
-      }
-   } /* End if yield error */
+      MqttConnectionError(); 
+   } 
    
    return true;
    
@@ -367,6 +357,38 @@ void MQTT_MGR_ResetStatus(void)
 
 
 /******************************************************************************
+** Function: MqttConnectionError
+**
+** Report an error using the MQTT connection
+**
+** Notes:
+**   1. Other than the constructor this should be the only function that
+**      modifies the reconnect data structure.
+*/
+static void MqttConnectionError(void)
+{
+   
+   if (MqttMgr->Reconnect.Enabled)
+   {
+      MqttMgr->Reconnect.DelayCnt++;
+      if (MqttMgr->Reconnect.DelayCnt >= MqttMgr->Reconnect.Period)
+      {
+         CFE_EVS_SendEvent(MQTT_MGR_RECONNECT_EID, CFE_EVS_EventType_INFORMATION, 
+                           "Attempting MQTT broker reconnect");
+         
+         if (MQTT_CLIENT_Reconnect())
+         {
+            SubscribeToTopicTblMsgs(TOPIC_SUB_TO_MQTT);
+         }
+         MqttMgr->Reconnect.Attempts++; 
+         MqttMgr->Reconnect.DelayCnt = 0;
+      }
+   }
+   
+} /* MqttConnectionError() */
+
+
+/******************************************************************************
 ** Function: ProcessSbTopicMsgs
 **
 ** Notes:
@@ -393,7 +415,10 @@ static void ProcessSbTopicMsgs(uint32 PerfId)
          {
             if (MSG_TRANS_ProcessSbMsg(&SbBufPtr->Msg, &Topic, &Payload))
             {
-               MQTT_CLIENT_Publish(Topic, Payload);
+               if(!MQTT_CLIENT_Publish(Topic, Payload))
+               {
+                  MqttConnectionError();
+               }
             }
          }
          else

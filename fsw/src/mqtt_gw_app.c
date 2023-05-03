@@ -75,8 +75,8 @@ static CFE_EVS_BinFilter_t  EventFilters[] =
    {MQTT_CLIENT_PUBLISH_EID,        CFE_EVS_FIRST_4_STOP},
    {MQTT_CLIENT_PUBLISH_ERR_EID,    CFE_EVS_FIRST_4_STOP},
    {MSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_FIRST_4_STOP},
-   {MSG_TRANS_PROCESS_SB_MSG_EID,   CFE_EVS_FIRST_4_STOP}
-
+   {MSG_TRANS_PROCESS_SB_MSG_EID,   CFE_EVS_FIRST_4_STOP},
+   {MQTT_MGR_RECONNECT_EID,         CFE_EVS_FIRST_4_STOP}
 };
 
 /*****************/
@@ -353,7 +353,7 @@ void SendHousekeepingPkt(void)
    Payload->SbTopicTestId       = MqttGw.MqttMgr.SbTopicTestId;
    Payload->SbTopicTestParam    = MqttGw.MqttMgr.SbTopicTestParam;
    Payload->UnpublishedSbMsgCnt = MqttGw.MqttMgr.UnpublishedSbMsgCnt;
-   Payload->ReconnectAttempts   = MqttGw.MqttMgr.ReconnectAttempts;
+   Payload->ReconnectAttempts   = MqttGw.MqttMgr.Reconnect.Attempts;
 
    Payload->MqttConnected = MqttGw.MqttMgr.MqttClient.Connected;
 
