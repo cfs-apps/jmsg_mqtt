@@ -132,7 +132,6 @@ typedef struct
    
    const char  *AppName;
    uint32      DiscreteTlmTopicId;
-   uint32      TunnelTlmTopicId;
    bool        Loaded;   /* Has entire table been loaded? */
    uint8       LastLoadStatus;
    uint16      LastLoadCnt;
@@ -160,7 +159,7 @@ typedef struct
 **
 */
 void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const char *AppName,
-                                uint32 DiscreteTlmTopicId, uint32 TunnelTlmTopicId);
+                                uint32 DiscreteTlmTopicId);
 
 
 /******************************************************************************

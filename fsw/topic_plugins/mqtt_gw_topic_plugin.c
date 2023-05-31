@@ -38,7 +38,8 @@
 /** Topic header files **/
 /************************/
 
-#include "mqtt_gw_topic_sbmsg.h"
+#include "mqtt_gw_topic_cmd.h"
+#include "mqtt_gw_topic_tlm.h"
 #include "mqtt_gw_topic_rate.h"
 #include "mqtt_gw_topic_discrete.h"
 
@@ -66,7 +67,8 @@ static void StubSbMsgTest(bool Init, int16 Param);
 
 // Declare topic plugin objects
 
-static MQTT_GW_TOPIC_SBMSG_Class_t     MqttGwTopicSbMsg;
+static MQTT_GW_TOPIC_CMD_Class_t       MqttGwTopicCmd;
+static MQTT_GW_TOPIC_TLM_Class_t       MqttGwTopicTlm;
 static MQTT_GW_TOPIC_DISCRETE_Class_t  MqttGwTopicDiscrete;
 static MQTT_GW_TOPIC_RATE_Class_t      MqttGwTopicRate;
 
@@ -94,7 +96,7 @@ SC_SIM example **/
 */
 void MQTT_GW_TOPIC_PLUGIN_Constructor(const MQTT_TOPIC_TBL_Data_t *TopicTbl,
                                       MQTT_TOPIC_TBL_PluginFuncTbl_t *PluginFuncTbl,
-                                      uint32 DiscreteTlmTopicId, uint32 TunnelTlmTopicId)
+                                      uint32 DiscreteTlmTopicId)
 {
 
    for (enum MQTT_GW_TopicPlugin i=0; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
@@ -102,22 +104,24 @@ void MQTT_GW_TOPIC_PLUGIN_Constructor(const MQTT_TOPIC_TBL_Data_t *TopicTbl,
       switch (i)
       {
          case MQTT_GW_TopicPlugin_1:
-            MQTT_GW_TOPIC_SBMSG_Constructor(&MqttGwTopicSbMsg, &PluginFuncTbl[i],
-                                            CFE_SB_ValueToMsgId(DiscreteTlmTopicId),
-                                            CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe),
-                                            CFE_SB_ValueToMsgId(TunnelTlmTopicId));
+            MQTT_GW_TOPIC_CMD_Constructor(&MqttGwTopicCmd, &PluginFuncTbl[i]);
             break;
+            
          case MQTT_GW_TopicPlugin_2:
-            MQTT_GW_TOPIC_DISCRETE_Constructor(&MqttGwTopicDiscrete, &PluginFuncTbl[i],
-                                               CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
-         
+            MQTT_GW_TOPIC_TLM_Constructor(&MqttGwTopicTlm, &PluginFuncTbl[i],
+                                          CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe),
+                                          CFE_SB_ValueToMsgId(DiscreteTlmTopicId));         
             break;
 
          case MQTT_GW_TopicPlugin_3:
+            MQTT_GW_TOPIC_DISCRETE_Constructor(&MqttGwTopicDiscrete, &PluginFuncTbl[i],
+                                               CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
+            break;
+
+         case MQTT_GW_TopicPlugin_4:
             MQTT_GW_TOPIC_RATE_Constructor(&MqttGwTopicRate, &PluginFuncTbl[i],
                                            CFE_SB_ValueToMsgId(TopicTbl->Topic[i].Cfe));
             break;
-
 /** SC_SIM example
          case MQTT_GW_TopicPlugin_4:
             SC_SIM_MQTT_TOPIC_CMD_Constructor(&ScSimTopicCmd, &PluginFuncTbl[i],

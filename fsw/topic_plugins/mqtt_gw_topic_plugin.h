@@ -67,7 +67,7 @@
 */
 void MQTT_GW_TOPIC_PLUGIN_Constructor(const MQTT_TOPIC_TBL_Data_t *TopicTbl,
                                       MQTT_TOPIC_TBL_PluginFuncTbl_t *PluginFuncTbl,
-                                      uint32 DiscreteTlmTopicId, uint32 TunnelTlmTopicId);
+                                      uint32 DiscreteTlmTopicId);
 
 
 #endif /* _mqtt_gw_topic_plugins_ */

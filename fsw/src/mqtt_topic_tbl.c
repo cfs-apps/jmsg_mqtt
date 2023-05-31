@@ -114,7 +114,7 @@ static MQTT_TOPIC_TBL_PluginFuncTbl_t PluginFuncTbl[MQTT_GW_TopicPlugin_Enum_t_M
 **
 */
 void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const char *AppName,
-                                uint32 DiscreteTlmTopicId, uint32 TunnelTlmTopicId)
+                                uint32 DiscreteTlmTopicId)
 {
 
    enum MQTT_GW_TopicPlugin i;
@@ -124,7 +124,6 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const c
 
    MqttTopicTbl->AppName = AppName;
    MqttTopicTbl->DiscreteTlmTopicId = DiscreteTlmTopicId;
-   MqttTopicTbl->TunnelTlmTopicId   = TunnelTlmTopicId;
    MqttTopicTbl->JsonObjCnt = (sizeof(JsonTblObjs)/sizeof(CJSON_Obj_t));
    
    for (i=0; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
@@ -136,7 +135,7 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const c
    
    // Plugin stubs loaded for disabled entries
    MQTT_GW_TOPIC_PLUGIN_Constructor(&MqttTopicTbl->Data, PluginFuncTbl,
-                                    MqttTopicTbl->DiscreteTlmTopicId, TunnelTlmTopicId);
+                                    MqttTopicTbl->DiscreteTlmTopicId);
                                     
 
 } /* End MQTT_TOPIC_TBL_Constructor() */
@@ -605,12 +604,11 @@ static bool LoadJsonData(size_t JsonFileLen)
       MqttTopicTbl->LastLoadCnt = ObjLoadCnt;
 
       MQTT_GW_TOPIC_PLUGIN_Constructor(&MqttTopicTbl->Data,PluginFuncTbl,
-                                       MqttTopicTbl->DiscreteTlmTopicId, 
-                                       MqttTopicTbl->TunnelTlmTopicId);
+                                       MqttTopicTbl->DiscreteTlmTopicId);
 
       RetStatus = true;
       
-   }
+   } /* End if valid JSON object count */
    
    return RetStatus;
    

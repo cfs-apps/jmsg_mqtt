@@ -49,10 +49,11 @@
 ** Versions:
 **
 ** 1.0.0 - Initial refactoring of Alan's MQTT
+** 1.4.0 - refactored sbmsg plugin into seperate cmd/tlm plugins
 */
 
 #define  MQTT_GW_MAJOR_VER      1
-#define  MQTT_GW_MINOR_VER      3
+#define  MQTT_GW_MINOR_VER      4
 
 /******************************************************************************
 **  INI File
@@ -88,7 +89,7 @@
 #define CFG_SEND_HK_TLM_TOPICID             BC_SCH_2_SEC_TOPICID
 #define CFG_MQTT_GW_HK_TLM_TOPICID          MQTT_GW_HK_TLM_TOPICID
 #define CFG_MQTT_GW_DISCRETE_PLUGIN_TOPICID MQTT_GW_DISCRETE_PLUGIN_TOPICID
-#define CFG_KIT_TO_TUNNEL_TLM_TOPICID       KIT_TO_TUNNEL_TLM_TOPICID
+#define CFG_KIT_TO_PUB_WRAPPED_TLM_TOPICID  KIT_TO_PUB_WRAPPED_TLM_TOPICID
 
 #define CFG_CMD_PIPE_NAME            CMD_PIPE_NAME
 #define CFG_CMD_PIPE_DEPTH           CMD_PIPE_DEPTH
@@ -121,7 +122,7 @@
    XX(BC_SCH_2_SEC_TOPICID,uint32) \
    XX(MQTT_GW_HK_TLM_TOPICID,uint32) \
    XX(MQTT_GW_DISCRETE_PLUGIN_TOPICID,uint32) \
-   XX(KIT_TO_TUNNEL_TLM_TOPICID,uint32) \
+   XX(KIT_TO_PUB_WRAPPED_TLM_TOPICID,uint32) \
    XX(CMD_PIPE_NAME,char*) \
    XX(CMD_PIPE_DEPTH,uint32) \
    XX(TOPIC_PIPE_NAME,char*) \

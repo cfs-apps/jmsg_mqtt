@@ -7,20 +7,24 @@
                     "'sb-role' entry defines the messages role from a SB perpective:",
                     "pub: read (subscribe) an MQTT JSON message from a MQTT broker and publish it on the SB",
                     "sub: read a SB message (subscribe) and publish it to a MQTT broker",
-                    "The default cfe-4 to cfe-8 entries are for SC_SIM to serve as an example"],
+                    "The default cfe-4 to cfe-8 entries are for SC_SIM to serve as an example",
+                    "KIT_TO PUB_WRAPPED_TLM_TOPICID: Set sb-role to sub so plugin receives wrapped KIT_TO telemetry",
+                    "KIT_TO SUB_WRAPPED_TLM_TOPICID: Set sb-role to pub so plugin sends wrapped telemetry to KIT_TO"],
 
    "topic-id-map": { 
    
-      "start": true,
-      
-      "KIT_TO_SB_WRAP_TO_UDP_TLM_TOPICID": "cfe-1",
-      "MQTT_GW_DISCRETE_PLUGIN_TOPICID": "cfe-2",
-      "MQTT_GW_RATE_PLUGIN_TOPICID": "cfe-3",
       "SC_SIM_CMD_TOPICID": "cfe-4",
       "SC_SIM_MGMT_TLM_TOPICID":  "cfe-5",
       "SC_SIM_MODEL_TLM_TOPICID": "cfe-6",
       "KIT_TO_EVENT_PLBK_TLM_TOPICID": "cfe-7",
       "EVS_LONG_EVENT_MSG_TOPICID": "cfe-8",
+
+      "start": true,
+      
+      "KIT_TO_SUB_WRAPPED_TLM_TOPICID": "cfe-1",
+      "KIT_TO_SUB_WRAPPED_TLM_TOPICID": "cfe-2",
+      "MQTT_GW_DISCRETE_PLUGIN_TOPICID": "cfe-3",
+      "MQTT_GW_RATE_PLUGIN_TOPICID": "cfe-4",
       
       "end": true
       
@@ -28,30 +32,37 @@
    
    "topic": [
        {
-          "mqtt":  "basecamp/sbmsg",
+          "mqtt":  "basecamp/cfs/cmd",
           "cfe-1": 2145,
           "cfe": 2145,
           "sb-role": "pub",
           "enabled": "true"
        },
        {
+          "mqtt":  "basecamp/cfs/tlm",
+          "cfe-2": 2145,
+          "cfe": 2145,
+          "sb-role": "pub",
+          "enabled": "true"
+       },
+       {
           "mqtt":  "basecamp/demo/sc/discrete",
-          "cfe-2": 2155,
+          "cfe-3": 2155,
           "cfe": 2155,
           "sb-role": "pub",
           "enabled": "true"
        },
        {
           "mqtt":  "basecamp/demo/sc/rate",
-          "cfe-3": 2156,
+          "cfe-4": 2156,
           "cfe": 2156,
           "sb-role": "pub",
           "enabled": "true"
        },
        {
           "mqtt":  "basecamp/sc_sim/cmd",
-          "cfe-4": 6246,
-          "cfe": 6246,
+          "cfe-4": 2156,
+          "cfe": 2156,
           "sb-role": "pub",
           "enabled": "false"
        },

@@ -13,7 +13,7 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Manage MQTT Software Bus topics
+**   Manage the conversion of telemetry messages
 **
 ** Notes:
 **   1. SB messages are not interpretted. A single MQTT topic is used
@@ -29,7 +29,7 @@
 ** Includes
 */
 
-#include "mqtt_gw_topic_sbmsg.h"
+#include "mqtt_gw_topic_tlm.h"
 
 /************************************/
 /** Local File Function Prototypes **/
@@ -43,38 +43,35 @@ static void SbMsgTest(bool Init, int16 Param);
 /** Global File Data **/
 /**********************/
 
-static MQTT_GW_TOPIC_SBMSG_Class_t* MqttGwTopicSbMsg = NULL;
+static MQTT_GW_TOPIC_TLM_Class_t* MqttGwTopicTlm = NULL;
 
 
 /******************************************************************************
-** Function: MQTT_GW_TOPIC_SBMSG_Constructor
+** Function: MQTT_GW_TOPIC_TLM_Constructor
 **
-** Initialize the MQTT SB Message topic
+** Initialize the telemetry topic
 **
 ** Notes:
-**   1. The integer telemetry message is used for the built in test.
+**   1. The discrete telemetry message is used for the built in test.
 **
 */
-void MQTT_GW_TOPIC_SBMSG_Constructor(MQTT_GW_TOPIC_SBMSG_Class_t *MqttGwTopicSbMsgPtr,
+void MQTT_GW_TOPIC_TLM_Constructor(MQTT_GW_TOPIC_TLM_Class_t *MqttGwTopicTlmPtr,
                                      MQTT_TOPIC_TBL_PluginFuncTbl_t *PluginFuncTbl,
-                                     CFE_SB_MsgId_t DiscretePluginTlmMid,
-                                     CFE_SB_MsgId_t WrapSbTlmMid, CFE_SB_MsgId_t TunnelTlmMid)
+                                     CFE_SB_MsgId_t WrappedTlmMid, CFE_SB_MsgId_t DiscretePluginTlmMid)
 {
 
-   MqttGwTopicSbMsg = MqttGwTopicSbMsgPtr;
-   memset(MqttGwTopicSbMsg, 0, sizeof(MQTT_GW_TOPIC_SBMSG_Class_t));
+   MqttGwTopicTlm = MqttGwTopicTlmPtr;
+   memset(MqttGwTopicTlm, 0, sizeof(MQTT_GW_TOPIC_TLM_Class_t));
 
    PluginFuncTbl->CfeToJson = CfeToJson;
    PluginFuncTbl->JsonToCfe = JsonToCfe;  
    PluginFuncTbl->SbMsgTest = SbMsgTest;
    
-   MqttGwTopicSbMsg->DiscretePluginTlmMsgLen = sizeof(MQTT_GW_DiscretePluginTlm_t);
-   CFE_MSG_Init(CFE_MSG_PTR(MqttGwTopicSbMsg->MqttToSbWrapTlmMsg), WrapSbTlmMid,     sizeof(KIT_TO_WrappedSbMsgTlm_t));
-   CFE_MSG_Init(CFE_MSG_PTR(MqttGwTopicSbMsg->DiscretePluginTlmMsg),      DiscretePluginTlmMid, MqttGwTopicSbMsg->DiscretePluginTlmMsgLen);
-   CFE_MSG_Init(CFE_MSG_PTR(MqttGwTopicSbMsg->TunnelTlm), TunnelTlmMid, sizeof(KIT_TO_WrappedSbMsgTlm_t));
+   MqttGwTopicTlm->DiscretePluginTlmMsgLen = sizeof(MQTT_GW_DiscretePluginTlm_t);
+   CFE_MSG_Init(CFE_MSG_PTR(MqttGwTopicTlm->WrappedTlmMsg), WrappedTlmMid, sizeof(KIT_TO_WrappedSbMsgTlm_t));
+   CFE_MSG_Init(CFE_MSG_PTR(MqttGwTopicTlm->DiscretePluginTlmMsg), DiscretePluginTlmMid, MqttGwTopicTlm->DiscretePluginTlmMsgLen);
          
-      
-} /* End MQTT_GW_TOPIC_SBMSG_Constructor() */
+} /* End MQTT_GW_TOPIC_TLM_Constructor() */
 
 
 /******************************************************************************
@@ -95,15 +92,15 @@ static bool CfeToJson(const char **JsonMsgPayload, const CFE_MSG_Message_t *CfeM
    CFE_MSG_Size_t MsgSize;
    const KIT_TO_WrappedSbMsgTlm_Payload_t *PayloadSbMsg = CMDMGR_PAYLOAD_PTR(CfeMsg, KIT_TO_WrappedSbMsgTlm_t);
    
-   *JsonMsgPayload = MqttGwTopicSbMsg->MqttMsgPayload;
+   *JsonMsgPayload = MqttGwTopicTlm->MqttMsgPayload;
 
    CfeStatus = CFE_MSG_GetSize((CFE_MSG_Message_t *)PayloadSbMsg, &MsgSize);
    if (CfeStatus == CFE_SUCCESS)
    {
        if (MsgSize < MQTT_TOPIC_SB_MSG_MAX_LEN)
        {
-           PktUtil_HexEncode(MqttGwTopicSbMsg->MqttMsgPayload, (uint8 *)PayloadSbMsg, MsgSize, true);
-           MqttGwTopicSbMsg->CfeToMqttCnt++;
+           PktUtil_HexEncode(MqttGwTopicTlm->MqttMsgPayload, (uint8 *)PayloadSbMsg, MsgSize, true);
+           MqttGwTopicTlm->CfeToMqttCnt++;
            RetStatus = true;
        }
    }
@@ -138,22 +135,22 @@ static bool JsonToCfe(CFE_MSG_Message_t **CfeMsg, const char *JsonMsgPayload, ui
 {
    
    bool RetStatus = false;
-   KIT_TO_WrappedSbMsgTlm_Payload_t *SbMsgPayload = &(MqttGwTopicSbMsg->MqttToSbWrapTlmMsg.Payload);
+   KIT_TO_WrappedSbMsgTlm_Payload_t *SbMsgPayload = &(MqttGwTopicTlm->WrappedTlmMsg.Payload);
    size_t DecodedLen;
    
    DecodedLen = PktUtil_HexDecode((uint8 *)SbMsgPayload, JsonMsgPayload, PayloadLen);
    if (DecodedLen > 0)
    {
-      CFE_EVS_SendEvent(MQTT_GW_TOPIC_SBMSG_HEX_DECODE_EID, CFE_EVS_EventType_ERROR,
+      CFE_EVS_SendEvent(MQTT_GW_TOPIC_TLM_HEX_DECODE_EID, CFE_EVS_EventType_DEBUG,
                         "MQTT message successfully decoded. MQTT len = %d, Decoded len = %d",
                         (uint16)PayloadLen, (uint16)DecodedLen);
-      *CfeMsg = CFE_MSG_PTR(MqttGwTopicSbMsg->MqttToSbWrapTlmMsg);
-      MqttGwTopicSbMsg->MqttToCfeCnt++;
+      *CfeMsg = CFE_MSG_PTR(MqttGwTopicTlm->WrappedTlmMsg);
+      MqttGwTopicTlm->MqttToCfeCnt++;
       RetStatus = true;
    }
    else
    {
-      CFE_EVS_SendEvent(MQTT_GW_TOPIC_SBMSG_HEX_DECODE_EID, CFE_EVS_EventType_ERROR,
+      CFE_EVS_SendEvent(MQTT_GW_TOPIC_TLM_HEX_DECODE_EID, CFE_EVS_EventType_ERROR,
                         "MQTT message decode failed. MQTT len = %d, Decoded len = %d",
                         (uint16)PayloadLen, (uint16)DecodedLen);
    }
@@ -166,18 +163,21 @@ static bool JsonToCfe(CFE_MSG_Message_t **CfeMsg, const char *JsonMsgPayload, ui
 /******************************************************************************
 ** Function: SbMsgTest
 **
-** Send a MQTT_GW discrete SB message
+** Test plugin by converting a MQTT_GW discrete SB telemetry message to an MQTT
+** JSON message 
 **
 ** Notes:
-**   1. Kit-to's packet table entry for MQTT_GW_DISCRETE_PLUGIN_TOPICID must have
+**   1. KIT_TO's packet table entry for MQTT_GW_DISCRETE_PLUGIN_TOPICID must have
 **      the forward attribute set to true.
-**   2. A walking bit pattern is used to help validation.
+**   2. The mqtt_gw_topics.json entry must be set to subscribe to
+**      KIT_TO_PUB_WRAPPED_TLM_TOPICID
+**   3. A walking bit pattern is used in the dsicrete data to help validation.
 **
 */
 static void SbMsgTest(bool Init, int16 Param)
 {
    
-   MQTT_GW_DiscretePluginTlm_Payload_t *Payload = &MqttGwTopicSbMsg->DiscretePluginTlmMsg.Payload;
+   MQTT_GW_DiscretePluginTlm_Payload_t *Payload = &MqttGwTopicTlm->DiscretePluginTlmMsg.Payload;
    uint8 DiscreteItem;
        
    memset(Payload, 0, sizeof(MQTT_GW_DiscretePluginTlm_Payload_t));
@@ -185,18 +185,18 @@ static void SbMsgTest(bool Init, int16 Param)
    if (Init)
    {
          
-      MqttGwTopicSbMsg->SbTestCnt = 0;
+      MqttGwTopicTlm->SbTestCnt = 0;
       Payload->Item_1 = 1;
       
-      CFE_EVS_SendEvent(MQTT_GW_TOPIC_SBMSG_INIT_SB_MSG_TEST_EID, CFE_EVS_EventType_INFORMATION,
-                        "SB message topic test started");
+      CFE_EVS_SendEvent(MQTT_GW_TOPIC_TLM_INIT_SB_MSG_TEST_EID, CFE_EVS_EventType_INFORMATION,
+                        "Telemetry topic test started");
    }
    else
    {
    
-      MqttGwTopicSbMsg->SbTestCnt++;
+      MqttGwTopicTlm->SbTestCnt++;
       
-      DiscreteItem = MqttGwTopicSbMsg->SbTestCnt % 4;
+      DiscreteItem = MqttGwTopicTlm->SbTestCnt % 4;
       switch (DiscreteItem)
       {
          case 0:
@@ -217,13 +217,11 @@ static void SbMsgTest(bool Init, int16 Param)
       } /* End axis switch */
    }
    
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttGwTopicSbMsg->DiscretePluginTlmMsg.TelemetryHeader));   
-   memcpy(&(MqttGwTopicSbMsg->TunnelTlm.Payload), &MqttGwTopicSbMsg->DiscretePluginTlmMsg, MqttGwTopicSbMsg->DiscretePluginTlmMsgLen);
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttGwTopicSbMsg->TunnelTlm.TelemetryHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttGwTopicSbMsg->TunnelTlm.TelemetryHeader), true);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttGwTopicTlm->DiscretePluginTlmMsg.TelemetryHeader));   
+   memcpy(&(MqttGwTopicTlm->WrappedTlmMsg.Payload), &MqttGwTopicTlm->DiscretePluginTlmMsg, MqttGwTopicTlm->DiscretePluginTlmMsgLen);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(MqttGwTopicTlm->WrappedTlmMsg.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttGwTopicTlm->WrappedTlmMsg.TelemetryHeader), true);
 
-   //CFE_SB_TransmitMsg(CFE_MSG_PTR(MqttGwTopicSbMsg->DiscretePluginTlmMsg.TelemetryHeader), true);
-   
 } /* End SbMsgTest() */
 
 

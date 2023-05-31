@@ -13,11 +13,12 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Manage MQTT Software Bus topics
+**   Manage the conversion of telemetry messages
 **
 ** Notes:
-**   1. SB messages are not interpretted. A single MQTT topic is used
-**      to transport any SB message as its payload
+**   1. Depends on KIT_TO's wrapped teleetry message definitions.
+**   2. Telemetry messages are not interpretted, they are treated 
+**      as payloads in wrapped messages.
 **
 ** References:
 **   1. cFS Basecamp Object-based Application Developer's Guide
@@ -25,8 +26,8 @@
 **
 */
 
-#ifndef _mqtt_gw_topic_sbmsg_
-#define _mqtt_gw_topic_sbmsg_
+#ifndef _mqtt_gw_topic_tlm_
+#define _mqtt_gw_topic_tlm_
 
 /*
 ** Includes
@@ -45,8 +46,8 @@
 ** Event Message IDs
 */
 
-#define MQTT_GW_TOPIC_SBMSG_INIT_SB_MSG_TEST_EID  (MQTT_GW_TOPIC_PLUGIN_1_BASE_EID + 0)
-#define MQTT_GW_TOPIC_SBMSG_HEX_DECODE_EID        (MQTT_GW_TOPIC_PLUGIN_1_BASE_EID + 1)
+#define MQTT_GW_TOPIC_TLM_INIT_SB_MSG_TEST_EID  (MQTT_GW_TOPIC_PLUGIN_1_BASE_EID + 0)
+#define MQTT_GW_TOPIC_TLM_HEX_DECODE_EID        (MQTT_GW_TOPIC_PLUGIN_1_BASE_EID + 1)
 
 /**********************/
 /** Type Definitions **/
@@ -67,8 +68,7 @@ typedef struct
    */
 
    uint16 DiscretePluginTlmMsgLen;
-   KIT_TO_WrappedSbMsgTlm_t     MqttToSbWrapTlmMsg;
-   MQTT_GW_DiscretePluginTlm_t  DiscretePluginTlmMsg;
+   KIT_TO_WrappedSbMsgTlm_t  WrappedTlmMsg;
 
    /*
    ** MQTT message data
@@ -79,16 +79,14 @@ typedef struct
    uint32  CfeToMqttCnt;
    uint32  MqttToCfeCnt;
    
-   CFE_SB_MsgId_t  KitToSbWrapTlmMid;
-
    /*
    ** Built in test
    */
    
    uint32 SbTestCnt;
-   KIT_TO_WrappedSbMsgTlm_t  TunnelTlm;
+   MQTT_GW_DiscretePluginTlm_t  DiscretePluginTlmMsg;
    
-} MQTT_GW_TOPIC_SBMSG_Class_t;
+} MQTT_GW_TOPIC_TLM_Class_t;
 
 
 /************************/
@@ -97,21 +95,16 @@ typedef struct
 
 
 /******************************************************************************
-** Function: MQTT_GW_TOPIC_SBMSG_Constructor
+** Function: MQTT_GW_TOPIC_TLM_Constructor
 **
-** Initialize the MQTT SBMSG topic
+** Initialize the MQTT Telemetry topic
 **
 ** Notes:
-**   1. The integer telemetry message is used for the built in test.
-**   2. The first topic is assumed to be defined as the SB messages wrapped
-**      in an DB message. These messages are sent to an MQTT broker.
-**   3. DiscreteMidOffset is the offset from the topic base MID for the
-**      integer MQTT topic that is used in SbMsg's test.
+**   1. The discrete telemetry message is used for the built in test
 **
 */
-void MQTT_GW_TOPIC_SBMSG_Constructor(MQTT_GW_TOPIC_SBMSG_Class_t *MqttGwTopicSbMsgPtr,
-                                     MQTT_TOPIC_TBL_PluginFuncTbl_t *PluginFuncTbl,
-                                     CFE_SB_MsgId_t DiscretePluginTlmMid,
-                                     CFE_SB_MsgId_t WrapSbTlmMid, CFE_SB_MsgId_t TunnelTlmMid);
+void MQTT_GW_TOPIC_TLM_Constructor(MQTT_GW_TOPIC_TLM_Class_t *MqttGwTopicTlmPtr,
+                                   MQTT_TOPIC_TBL_PluginFuncTbl_t *PluginFuncTbl,
+                                   CFE_SB_MsgId_t WrappedTlmMid, CFE_SB_MsgId_t DiscretePluginTlmMid);
 
-#endif /* _mqtt_gw_topic_sbmsg_ */
+#endif /* _mqtt_gw_topic_tlm_ */
