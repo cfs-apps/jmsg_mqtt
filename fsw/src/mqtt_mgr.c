@@ -18,10 +18,6 @@
 ** Notes:
 **   None
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 /*
@@ -150,7 +146,7 @@ bool MQTT_MGR_ChildTaskCallback(CHILDMGR_Class_t *ChildMgr)
 bool MQTT_MGR_ConfigTopicPluginCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const MQTT_GW_ConfigTopicPlugin_Payload_t *ConfigTopicPlugin = CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConfigTopicPlugin_t);
+   const MQTT_GW_ConfigTopicPlugin_CmdPayload_t *ConfigTopicPlugin = CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConfigTopicPlugin_t);
    bool RetStatus = false;
    TopicSubscribeStatusEnum_t TopicSubscription;
    
@@ -203,7 +199,7 @@ bool MQTT_MGR_ConfigTopicPluginCmd(void* DataObjPtr, const CFE_MSG_Message_t *Ms
 bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const MQTT_GW_ConfigSbTopicTest_Payload_t *ConfigSbTopicTest = CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConfigSbTopicTest_t);
+   const MQTT_GW_ConfigSbTopicTest_CmdPayload_t *ConfigSbTopicTest = CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConfigSbTopicTest_t);
    bool RetStatus = false;
 
    if (MQTT_TOPIC_TBL_ValidTopicPlugin(ConfigSbTopicTest->Id))
@@ -255,7 +251,7 @@ bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *Ms
 */
 bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
-   const MQTT_GW_ConnectToMqttBroker_Payload_t *ConnectToMqttBrokerCmd = 
+   const MQTT_GW_ConnectToMqttBroker_CmdPayload_t *ConnectToMqttBrokerCmd = 
                                                CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConnectToMqttBroker_t);
    bool RetStatus = false;
    const char *BrokerAddress;

@@ -20,10 +20,6 @@
 **      have a platform scope because the same app_cfg.h file name is used for
 **      all applications following the object-based application design.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
-**
 */
 
 #ifndef _app_cfg_
@@ -32,9 +28,6 @@
 /*
 ** Includes
 */
-
-#include "MQTTLinux.h"  /* Must be included prior to "MQTTClient.h" */
-#include "MQTTClient.h"
 
 #include "mqtt_gw_eds_typedefs.h"
 #include "mqtt_gw_platform_cfg.h"
@@ -48,12 +41,13 @@
 /*
 ** Versions:
 **
-** 1.0.0 - Initial refactoring of Alan's MQTT
-** 1.4.0 - refactored sbmsg plugin into seperate cmd/tlm plugins
+** 1.0 - Initial refactoring of Alan's MQTT
+** 1.4 - refactored sbmsg plugin into seperate cmd/tlm plugins
+** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
 */
 
 #define  MQTT_GW_MAJOR_VER      1
-#define  MQTT_GW_MINOR_VER      4
+#define  MQTT_GW_MINOR_VER      5
 
 /******************************************************************************
 **  INI File
@@ -80,10 +74,10 @@
 ** XX(name,type)
 */
 
-#define CFG_APP_CFE_NAME             APP_CFE_NAME
+#define CFG_APP_CFE_NAME                    APP_CFE_NAME
 
-#define CFG_APP_MAIN_PERF_ID         APP_MAIN_PERF_ID
-#define CFG_CHILD_TASK_PERF_ID       CHILD_TASK_PERF_ID
+#define CFG_APP_MAIN_PERF_ID                APP_MAIN_PERF_ID
+#define CFG_CHILD_TASK_PERF_ID              CHILD_TASK_PERF_ID
 
 #define CFG_MQTT_GW_CMD_TOPICID             MQTT_GW_CMD_TOPICID
 #define CFG_SEND_HK_TLM_TOPICID             BC_SCH_2_SEC_TOPICID
@@ -195,6 +189,6 @@ DECLARE_ENUM(Config,APP_CONFIG)
 */
 
 #define MQTT_TOPIC_TBL_JSON_FILE_MAX_CHAR  5000
-
+#define MQTT_TOPIC_TBL_NAME                "MQTT Topics"
 
 #endif /* _app_cfg_ */

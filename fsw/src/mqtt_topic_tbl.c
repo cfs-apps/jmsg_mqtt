@@ -19,9 +19,6 @@
 **   1. Each supported MQTT topic is listed in a JSON file and each
 **      topic has a JSON file that defines the topics content.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**
 */
 
 /*
@@ -113,7 +110,7 @@ static MQTT_TOPIC_TBL_PluginFuncTbl_t PluginFuncTbl[MQTT_GW_TopicPlugin_Enum_t_M
 **    1. This must be called prior to any other functions
 **
 */
-void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const char *AppName,
+void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr,
                                 uint32 DiscreteTlmTopicId)
 {
 
@@ -122,7 +119,6 @@ void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const c
 
    CFE_PSP_MemSet(MqttTopicTbl, 0, sizeof(MQTT_TOPIC_TBL_Class_t));
 
-   MqttTopicTbl->AppName = AppName;
    MqttTopicTbl->DiscreteTlmTopicId = DiscreteTlmTopicId;
    MqttTopicTbl->JsonObjCnt = (sizeof(JsonTblObjs)/sizeof(CJSON_Obj_t));
    
@@ -188,74 +184,37 @@ bool MQTT_TOPIC_TBL_DisablePlugin(enum MQTT_GW_TopicPlugin TopicPlugin)
 **
 ** Notes:
 **  1. Function signature must match TBLMGR_DumpTblFuncPtr_t.
-**  2. Can assume valid table filename because this is a callback from 
-**     the app framework table manager that has verified the file.
-**  3. DumpType is unused.
-**  4. File is formatted so it can be used as a load file. It does not follow
-**     the cFE table file format. 
-**  5. Creates a new dump file, overwriting anything that may have existed
-**     previously
+**  2. File is formatted so it can be used as a load file.
 */
-bool MQTT_TOPIC_TBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
+bool MQTT_TOPIC_TBL_DumpCmd(osal_id_t  FileHandle)
 {
 
-   uint8      i;
-   bool       RetStatus = false;
-   int32      SysStatus;
-   osal_id_t  FileHandle;
-   os_err_name_t OsErrStr;
-   char DumpRecord[256];
-   char SysTimeStr[128];
+   uint8  i;
+   char   DumpRecord[256];
 
-   
-   SysStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_CREATE, OS_READ_WRITE);
 
-   if (SysStatus == OS_SUCCESS)
+   sprintf(DumpRecord,"   \"topic\": [\n");
+   OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
+
+   for (i=0; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
    {
- 
-      sprintf(DumpRecord,"{\n   \"app-name\": \"%s\",\n   \"tbl-name\": \"MQTT Topics\",\n",MqttTopicTbl->AppName);
-      OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
-
-      CFE_TIME_Print(SysTimeStr, CFE_TIME_GetTime());
-      sprintf(DumpRecord,"   \"description\": \"Table dumped at %s\",\n",SysTimeStr);
-      OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
-
-      sprintf(DumpRecord,"   \"topic\": [\n");
-      OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
-
-      for (i=0; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
+      if (MqttTopicTbl->Data.Topic[i].Enabled)
       {
-         if (MqttTopicTbl->Data.Topic[i].Enabled)
+         if (i > 0)
          {
-            if (i > 0)
-            {
-               sprintf(DumpRecord,",\n");
-               OS_write(FileHandle,DumpRecord,strlen(DumpRecord));      
-            }
-            sprintf(DumpRecord,"   {\n         \"mqtt\": \"%s\",\n         \"cfe\": %d,\n         \"sb-role\": \"%s\",\n         \"enabled\": \"%s\"\n      }",
-                    MqttTopicTbl->Data.Topic[i].Mqtt, MqttTopicTbl->Data.Topic[i].Cfe, MqttTopicTbl->Data.Topic[i].SbStr, MqttTopicTbl->Data.Topic[i].EnaStr);
-            OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
+            sprintf(DumpRecord,",\n");
+            OS_write(FileHandle,DumpRecord,strlen(DumpRecord));      
          }
+         sprintf(DumpRecord,"   {\n         \"mqtt\": \"%s\",\n         \"cfe\": %d,\n         \"sb-role\": \"%s\",\n         \"enabled\": \"%s\"\n      }",
+                 MqttTopicTbl->Data.Topic[i].Mqtt, MqttTopicTbl->Data.Topic[i].Cfe, MqttTopicTbl->Data.Topic[i].SbStr, MqttTopicTbl->Data.Topic[i].EnaStr);
+         OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
       }
+   }
 
-      sprintf(DumpRecord,"   ]\n}\n");
-      OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
+   sprintf(DumpRecord,"   ]\n");
+   OS_write(FileHandle,DumpRecord,strlen(DumpRecord));
 
-      OS_close(FileHandle);
-
-      RetStatus = true;
-
-   } /* End if file create */
-   else
-   {
-      OS_GetErrorName(SysStatus, &OsErrStr);
-      CFE_EVS_SendEvent(MQTT_TOPIC_TBL_DUMP_ERR_EID, CFE_EVS_EventType_ERROR,
-                        "Error creating dump file '%s', status=%s",
-                        Filename, OsErrStr);
-   
-   } /* End if file create error */
-
-   return RetStatus;
+   return true;
    
 } /* End of MQTT_TOPIC_TBL_DumpCmd() */
 
@@ -433,7 +392,7 @@ MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(enum MQTT_GW_TopicPlugin 
 **  2. This could migrate into table manager but I think I'll keep it here so
 **     user's can add table processing code if needed.
 */
-bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filename)
+bool MQTT_TOPIC_TBL_LoadCmd(APP_C_FW_TblLoadOptions_Enum_t LoadType, const char *Filename)
 {
 
    bool  RetStatus = false;
@@ -441,12 +400,7 @@ bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filen
    if (CJSON_ProcessFile(Filename, MqttTopicTbl->JsonBuf, MQTT_TOPIC_TBL_JSON_FILE_MAX_CHAR, LoadJsonData))
    {
       MqttTopicTbl->Loaded = true;
-      MqttTopicTbl->LastLoadStatus = TBLMGR_STATUS_VALID;
       RetStatus = true;
-   }
-   else
-   {
-      MqttTopicTbl->LastLoadStatus = TBLMGR_STATUS_INVALID;
    }
 
    return RetStatus;
@@ -490,7 +444,6 @@ uint8 MQTT_TOPIC_TBL_MsgIdToTopicPlugin(CFE_SB_MsgId_t MsgId)
 void MQTT_TOPIC_TBL_ResetStatus(void)
 {
 
-   MqttTopicTbl->LastLoadStatus = TBLMGR_STATUS_UNDEF;
    MqttTopicTbl->LastLoadCnt = 0;
  
 } /* End MQTT_TOPIC_TBL_ResetStatus() */

@@ -20,10 +20,6 @@
 **      converting an MQTT command message into a SB message.
 **   2. This plugin performs the sane EDS processing as CI_LAB.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 #ifndef _mqtt_gw_topic_cmd_

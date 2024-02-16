@@ -23,10 +23,6 @@
 **      processing the table, a single object is used for management functions
 **      and table processing.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 /*
@@ -57,12 +53,11 @@ void MSG_TRANS_Constructor(MSG_TRANS_Class_t *MsgTransPtr,
 
    CFE_PSP_MemSet((void*)MsgTransPtr, 0, sizeof(MSG_TRANS_Class_t));
    
-   MQTT_TOPIC_TBL_Constructor(&MsgTrans->TopicTbl, 
-                              INITBL_GetStrConfig(IniTbl, CFG_APP_CFE_NAME),
+   MQTT_TOPIC_TBL_Constructor(&MsgTrans->TopicTbl,
                               INITBL_GetIntConfig(IniTbl, CFG_MQTT_GW_DISCRETE_PLUGIN_TOPICID));
                               
-   TBLMGR_RegisterTblWithDef(TblMgr, MQTT_TOPIC_TBL_LoadCmd, 
-                             MQTT_TOPIC_TBL_DumpCmd,  
+   TBLMGR_RegisterTblWithDef(TblMgr, MQTT_TOPIC_TBL_NAME, 
+                             MQTT_TOPIC_TBL_LoadCmd, MQTT_TOPIC_TBL_DumpCmd,  
                              INITBL_GetStrConfig(IniTbl, CFG_MQTT_TOPIC_TBL_DEF_FILE));                           
 
 

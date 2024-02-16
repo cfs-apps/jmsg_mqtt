@@ -18,10 +18,6 @@
 ** Notes:
 **   None
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 #ifndef _mqtt_gw_topic_discrete_

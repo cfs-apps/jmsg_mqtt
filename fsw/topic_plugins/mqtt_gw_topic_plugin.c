@@ -22,9 +22,6 @@
 **      To use SC_SIM the '**' comment lines can be commented out
 **      using the '//' syntax.
 ** 
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**
 */
 
 /*

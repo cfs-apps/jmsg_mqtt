@@ -20,10 +20,6 @@
 **       of the maximum SB message that can be wrapped. The wrpped messages
 **       are expected to come from MQTT_GW.
 **
-**  References:
-**    1. cFS Basecamp Object-based Application Developer's Guide.
-**    2. cFS Application Developer's Guide.
-**
 */
 
 #ifndef _mqtt_gw_platform_cfg_

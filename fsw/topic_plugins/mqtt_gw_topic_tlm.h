@@ -20,10 +20,6 @@
 **   2. Telemetry messages are not interpretted, they are treated 
 **      as payloads in wrapped messages.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 #ifndef _mqtt_gw_topic_tlm_

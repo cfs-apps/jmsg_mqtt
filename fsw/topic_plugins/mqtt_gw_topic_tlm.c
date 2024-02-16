@@ -19,10 +19,6 @@
 **   1. SB messages are not interpretted. A single MQTT topic is used
 **      to transport any SB message as its payload
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 /*

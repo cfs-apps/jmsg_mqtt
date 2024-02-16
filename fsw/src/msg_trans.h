@@ -23,10 +23,6 @@
 **      processing the table, a single object is used for management functions
 **      and table processing.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 #ifndef _msg_trans_
 #define _msg_trans_
@@ -34,6 +30,9 @@
 /*
 ** Includes
 */
+
+#include "MQTTLinux.h"  /* Must be included prior to "MQTTClient.h" */
+#include "MQTTClient.h"
 
 #include "app_cfg.h"
 #include "mqtt_topic_tbl.h"

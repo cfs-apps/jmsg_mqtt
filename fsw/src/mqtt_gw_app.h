@@ -23,10 +23,6 @@
 **      A separate JSON table is defined for each supported MQTT topic combined
 **      with a custom function to manage the translation.
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 #ifndef _mqtt_gw_app_
 #define _mqtt_gw_app_

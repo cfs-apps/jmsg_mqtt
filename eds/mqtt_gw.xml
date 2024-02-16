@@ -45,8 +45,8 @@
         </EnumerationList>
       </EnumeratedDataType>
       
-      <EnumeratedDataType name="TblId" shortDescription="Identifies different app tables. Must match order in which tables are registered during app initialization" >
-        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+      <EnumeratedDataType name="TblId" shortDescription="Table Identifiers. See app_c_fw.xml guidelines" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
         <EnumerationList>
           <Enumeration label="MQTT_TOPIC" value="0" shortDescription="List topics supported" />
         </EnumerationList>
@@ -85,7 +85,7 @@
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
 
-      <ContainerDataType name="LoadTbl_Payload" shortDescription="Load an app's JSON table">
+      <ContainerDataType name="LoadTbl_CmdPayload" shortDescription="Load an app's JSON table">
         <EntryList>
           <Entry name="Id"       type="TblId"                   shortDescription="Table identifier" />
           <Entry name="Type"     type="APP_C_FW/TblLoadOptions" shortDescription="Replace entire table or perform sparse entry updates" />
@@ -93,15 +93,14 @@
        </EntryList>
       </ContainerDataType>
       
-      <ContainerDataType name="DumpTbl_Payload" shortDescription="Dump an app's JSON table">
+      <ContainerDataType name="DumpTbl_CmdPayload" shortDescription="Dump an app's JSON table">
         <EntryList>
           <Entry name="Id"       type="TblId"               shortDescription="Table identifier" />
-          <Entry name="Unused"   type="BASE_TYPES/uint8"    shortDescription="Unused" />
           <Entry name="Filename" type="BASE_TYPES/PathName" shortDescription="Full path and file name of table to be dumped" />
        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="ConnectToMqttBroker_Payload" shortDescription="Connect to an MQTT broker">
+      <ContainerDataType name="ConnectToMqttBroker_CmdPayload" shortDescription="Connect to an MQTT broker">
         <EntryList>
           <Entry name="BrokerAddress" type="BASE_TYPES/PathName" shortDescription="URL of MQTT broker. Empty string will use app default" />
           <Entry name="BrokerPort"    type="BASE_TYPES/uint16"   shortDescription="Port of MQTT broker. A zero will use app default" />
@@ -109,14 +108,14 @@
        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="ConfigTopicPlugin_Payload" shortDescription="Enable/disable a topic plugin">
+      <ContainerDataType name="ConfigTopicPlugin_CmdPayload" shortDescription="Enable/disable a topic plugin">
         <EntryList>
           <Entry name="Id"     type="TopicPlugin"              shortDescription="Plugin Topic identifier" />
           <Entry name="Action" type="APP_C_FW/ConfigEnaAction" shortDescription="Enable/disable a plugin" />
        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="ConfigSbTopicTest_Payload" shortDescription="Start or stop a SB topic test">
+      <ContainerDataType name="ConfigSbTopicTest_CmdPayload" shortDescription="Start or stop a SB topic test">
         <EntryList>
           <Entry name="Id"     type="TopicPlugin"               shortDescription="Plugin Topic identifier" />
           <Entry name="Action" type="APP_C_FW/ConfigExeAction"  shortDescription="Start/stop a test" />
@@ -193,7 +192,7 @@
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/LOAD_TBL_CC}" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="LoadTbl_Payload" name="Payload" />
+          <Entry type="LoadTbl_CmdPayload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -202,7 +201,7 @@
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/DUMP_TBL_CC}" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="DumpTbl_Payload" name="Payload" />
+          <Entry type="DumpTbl_CmdPayload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -211,7 +210,7 @@
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 0" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="ConnectToMqttBroker_Payload" name="Payload" />
+          <Entry type="ConnectToMqttBroker_CmdPayload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -220,7 +219,7 @@
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 1" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="ConfigTopicPlugin_Payload" name="Payload" />
+          <Entry type="ConfigTopicPlugin_CmdPayload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -229,7 +228,7 @@
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="ConfigSbTopicTest_Payload" name="Payload" />
+          <Entry type="ConfigSbTopicTest_CmdPayload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 

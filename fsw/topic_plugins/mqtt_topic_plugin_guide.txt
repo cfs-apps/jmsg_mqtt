@@ -8,7 +8,7 @@ define functions for converting between MQTT messages and cFE SB messages.
   a file named mqtt_install.txt that explains how to install the app's plugin
   from the app's perspective
 - In cfs-basecamp/cfe-eds-framework/basecamp_defs/cpu1_mqtt_gw_ini.json make
-  sure the "MQTT_BROKER" configurations match your situiation
+  sure the "MQTT_BROKER" configurations match your situation
   
   
 #################################################

@@ -23,10 +23,6 @@
 **      in enough use cases to know the current command processing
 **      and send HK logic is sufficient 
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 
 /*
@@ -202,14 +198,8 @@ static int32 InitApp(void)
       MqttGw.CmdMid    = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_CMD_TOPICID));
       MqttGw.SendHkMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_TLM_TOPICID));
    
-      RetStatus = CFE_SUCCESS;
-   
-   } /* End if INITBL Constructed */
-   
-   if (RetStatus == CFE_SUCCESS)
-   {
-
-      TBLMGR_Constructor(TBLMGR_OBJ);
+      /* Must construct table manager prior to table objects */
+      TBLMGR_Constructor(TBLMGR_OBJ, INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CFE_NAME));
       MQTT_MGR_Constructor(MQTT_MGR_OBJ, INITBL_OBJ, TBLMGR_OBJ);
 
       /* Child Manager constructor sends error events */
@@ -233,12 +223,12 @@ static int32 InitApp(void)
       CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_NOOP_CC,   NULL, MQTT_GW_NoOpCmd,     0);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_RESET_CC,  NULL, MQTT_GW_ResetAppCmd, 0);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, sizeof(MQTT_GW_LoadTbl_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, sizeof(MQTT_GW_DumpTbl_CmdPayload_t));
  
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONNECT_TO_MQTT_BROKER_CC,   MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,   sizeof(MQTT_GW_ConnectToMqttBroker_Payload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_TOPIC_PLUGIN_CC,      MQTT_MGR_OBJ, MQTT_MGR_ConfigTopicPluginCmd,     sizeof(MQTT_GW_ConfigTopicPlugin_Payload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_SB_TOPIC_TEST_CC,     MQTT_MGR_OBJ, MQTT_MGR_ConfigSbTopicTestCmd,     sizeof(MQTT_GW_ConfigSbTopicTest_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONNECT_TO_MQTT_BROKER_CC,   MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,   sizeof(MQTT_GW_ConnectToMqttBroker_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_TOPIC_PLUGIN_CC,      MQTT_MGR_OBJ, MQTT_MGR_ConfigTopicPluginCmd,     sizeof(MQTT_GW_ConfigTopicPlugin_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_CONFIG_SB_TOPIC_TEST_CC,     MQTT_MGR_OBJ, MQTT_MGR_ConfigSbTopicTestCmd,     sizeof(MQTT_GW_ConfigSbTopicTest_CmdPayload_t));
       CMDMGR_RegisterFunc(CMDMGR_OBJ, MQTT_GW_RECONNECT_TO_MQTT_BROKER_CC, MQTT_MGR_OBJ, MQTT_MGR_ReconnectToMqttBrokerCmd, 0);
          
       CFE_MSG_Init(CFE_MSG_PTR(MqttGw.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_GW_HK_TLM_TOPICID)), sizeof(MQTT_GW_HkTlm_t));
@@ -250,7 +240,7 @@ static int32 InitApp(void)
                         "MQTT Gateway App Initialized. Version %d.%d.%d",
                         MQTT_GW_MAJOR_VER, MQTT_GW_MINOR_VER, MQTT_GW_PLATFORM_REV);
                         
-   } /* End if CHILDMGR constructed */
+   } /* End if INITBL Constructed */
    
    return RetStatus;
 

@@ -24,9 +24,6 @@
 **        JSON and sent to an MQTT broker
 **   2. See mqtt_gw/fsw/topics/mqtt_gw_topics.c for topic plugin instructions 
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**
 */
 
 #ifndef _mqtt_topic_tbl_
@@ -130,10 +127,8 @@ typedef struct
    ** Standard CJSON table data
    */
    
-   const char  *AppName;
    uint32      DiscreteTlmTopicId;
    bool        Loaded;   /* Has entire table been loaded? */
-   uint8       LastLoadStatus;
    uint16      LastLoadCnt;
    
    size_t      JsonObjCnt;
@@ -158,7 +153,7 @@ typedef struct
 **      registered with the table manager.
 **
 */
-void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr, const char *AppName,
+void MQTT_TOPIC_TBL_Constructor(MQTT_TOPIC_TBL_Class_t *MqttTopicTblPtr,
                                 uint32 DiscreteTlmTopicId);
 
 
@@ -181,11 +176,9 @@ bool MQTT_TOPIC_TBL_DisablePlugin(enum MQTT_GW_TopicPlugin TopicPlugin);
 **
 ** Notes:
 **  1. Function signature must match TBLMGR_DumpTblFuncPtr_t.
-**  2. Can assume valid table file name because this is a callback from 
-**     the app framework table manager.
 **
 */
-bool MQTT_TOPIC_TBL_DumpCmd(TBLMGR_Tbl_t *Tbl, uint8 DumpType, const char *Filename);
+bool MQTT_TOPIC_TBL_DumpCmd(osal_id_t  FileHandle);
 
 
 /******************************************************************************
@@ -261,10 +254,10 @@ MQTT_TOPIC_TBL_JsonToCfe_t MQTT_TOPIC_TBL_GetJsonToCfe(enum MQTT_GW_TopicPlugin 
 ** Notes:
 **  1. Function signature must match TBLMGR_LoadTblFuncPtr_t.
 **  2. Can assume valid table file name because this is a callback from 
-**     the app framework table manager.
+**     the app framework table manager that verified the filename.
 **
 */
-bool MQTT_TOPIC_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filename);
+bool MQTT_TOPIC_TBL_LoadCmd(APP_C_FW_TblLoadOptions_Enum_t LoadType, const char *Filename);
 
 
 /******************************************************************************

@@ -18,10 +18,6 @@
 ** Notes:
 **   None
 **
-** References:
-**   1. cFS Basecamp Object-based Application Developer's Guide
-**   2. cFS Application Developer's Guide
-**
 */
 #ifndef _mqtt_client_
 #define _mqtt_client
@@ -31,7 +27,11 @@
 ** Includes
 */
 
+#include "MQTTLinux.h"  /* Must be included prior to "MQTTClient.h" */
+#include "MQTTClient.h"
+
 #include "app_cfg.h"
+
 
 
 /***********************/
