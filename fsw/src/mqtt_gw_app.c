@@ -189,7 +189,7 @@ static int32 InitApp(void)
    if (INITBL_Constructor(INITBL_OBJ, MQTT_GW_INI_FILENAME, &IniCfgEnum))
    {
    
-      /* Pool for a command every 2 seconds */
+      /* Poll for a command every 2 seconds */
       MqttGw.PollCmdInterval = 2000 / INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_PEND_TIME);
       MqttGw.PollCmdCnt = 0;
       MqttGw.PerfId = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);

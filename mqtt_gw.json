@@ -3,7 +3,7 @@
    "app": {
    
    "title": "MQTT_GW",
-   "version": "0.1.0",
+   "version": "1.6.0",
    "supplier": "Open STEMware",
    "copyright": "bitValence",
    "url": "https://github.com/cfs-apps/mqtt_gw",

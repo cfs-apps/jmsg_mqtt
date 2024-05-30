@@ -47,13 +47,8 @@
 */
 
 #define  MQTT_GW_MAJOR_VER      1
-#define  MQTT_GW_MINOR_VER      5
+#define  MQTT_GW_MINOR_VER      6
 
-/******************************************************************************
-**  INI File
-*/
-
-#define  MQTT_GW_INI_MAX_STRINGS 20
 
 /******************************************************************************
 ** Init File declarations create:

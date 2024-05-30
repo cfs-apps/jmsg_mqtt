@@ -17,7 +17,7 @@
 **
 **  Notes:
 **    1. The MQTT_GW_TOPIC_LEN definition is based on KIT_TO's definition
-**       of the maximum SB message that can be wrapped. The wrpped messages
+**       of the maximum SB message that can be wrapped. The wrapped messages
 **       are expected to come from MQTT_GW.
 **
 */

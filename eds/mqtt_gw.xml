@@ -15,7 +15,7 @@
     GNU Affero General Public License for more details.
 
     Purpose: 
-      This defines the interface MQTT Gateway app 
+      This defines the MQTT Gateway app interface. 
 
     Notes:
       1. This document adheres to the Electronic Data Sheet (EDS) XML schema 
@@ -23,7 +23,7 @@
 
 -->
 <PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
-  <Package name="MQTT_GW" shortDescription="cFS Basecamp MQTT application">
+  <Package name="MQTT_GW" shortDescription="cFS Basecamp MQTT Gateway application">
     <DataTypeSet>
 
       <!--***********************************-->
@@ -223,7 +223,7 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="ConfigSbTopicTest" baseType="CommandBase" shortDescription="Connect or reconnect to an MQTT broker">
+      <ContainerDataType name="ConfigSbTopicTest" baseType="CommandBase" shortDescription="Enable/disable topic test">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
         </ConstraintSet>
