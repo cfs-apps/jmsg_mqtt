@@ -23,13 +23,14 @@
 
 -->
 <PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
-  <Package name="JMSG_RATE" shortDescription="JSON Discrete Message">
+  <Package name="JMSG_MQTT_TOPICS" shortDescription="Define JMSG_MQTT app's JMSG topic plugin messages">
     <DataTypeSet>
 
       <!--***********************************-->
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
-s     
+
+      
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
@@ -38,14 +39,22 @@ s
       <!--**** DataTypeSet: Telemetry Payloads ****-->
       <!--*****************************************-->
     
-      <ContainerDataType name="Tlm_Payload" shortDescription="3 axis coordinates">
+      <ContainerDataType name="DiscreteTlm_Payload" shortDescription="Generic discrete integer items">
+        <EntryList>
+          <Entry name="Item_1" type="BASE_TYPES/int32"  />
+          <Entry name="Item_2" type="BASE_TYPES/int32"  />
+          <Entry name="Item_3" type="BASE_TYPES/int32"  />
+          <Entry name="Item_4" type="BASE_TYPES/int32"  />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="RateTlm_Payload" shortDescription="3 axis coordinates">
         <EntryList>
           <Entry name="X" type="BASE_TYPES/float"  />
           <Entry name="Y" type="BASE_TYPES/float"  />
           <Entry name="Z" type="BASE_TYPES/float"  />
         </EntryList>
       </ContainerDataType>
-
       
       <!--**************************************-->
       <!--**** DataTypeSet: Command Packets ****-->
@@ -57,17 +66,22 @@ s
       <!--****************************************-->
 
      
-      <ContainerDataType name="TlmMsg" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="DiscreteTlmMsg" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="Tlm_Payload" name="Payload" />
+          <Entry type="DiscreteTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
-
+      <ContainerDataType name="RateTlmMsg" baseType="CFE_HDR/TelemetryHeader">
+        <EntryList>
+          <Entry type="RateTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+      
     </DataTypeSet>
     
     <ComponentSet>
-      <Component name="Library">
+      <Component name="Application">
 
         <!--***********************************-->
         <!--**** Component Set: Interfaces ****-->
@@ -75,12 +89,18 @@ s
       
         <RequiredInterfaceSet>
                   
-          <Interface name="JMSG_RATE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="DISCRETE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="TlmMsg" />
+              <GenericTypeMap name="TelemetryDataType" type="DiscreteTlmMsg" />
             </GenericTypeMapSet>
           </Interface>
 
+          <Interface name="RATE_TLM" shortDescription="Software bus telemetry interface" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="RateTlmMsg" />
+            </GenericTypeMapSet>
+          </Interface>
+          
         </RequiredInterfaceSet>
 
         <!--***************************************-->
@@ -89,11 +109,13 @@ s
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="JMsgRateTopicId"      initialValue="${CFE_MISSION/JMSG_RATE_PLUGIN_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="JMsgDiscreteTopicId"  initialValue="${CFE_MISSION/JMSG_MQTT_PLUGIN_DISCRETE_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="JMsgRateTopicId"      initialValue="${CFE_MISSION/JMSG_MQTT_PLUGIN_RATE_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
-          <ParameterMapSet>          
-            <ParameterMap interface="JMSG_RATE_TLM" parameter="TopicId" variableRef="JMsgRateTopicId" />
+          <ParameterMapSet>
+            <ParameterMap interface="DISCRETE_TLM"  parameter="TopicId" variableRef="JMsgDiscreteTopicId" />
+            <ParameterMap interface="RATE_TLM"      parameter="TopicId" variableRef="JMsgRateTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

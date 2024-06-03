@@ -13,14 +13,14 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Define configurations for the MQTT Gateway application
+**   Define configurations for the JMSG MQTT Gateway application
 **
 ** Notes:
 **   None
 **
 */
-#ifndef _mqtt_gw_mission_cfg_
-#define _mqtt_gw_mission_cfg_
+#ifndef _jsmg_mqtt_mission_cfg_
+#define _jsmg_mqtt_mission_cfg_
 
 
-#endif /* _mqtt_gw_mission_cfg_ */
+#endif /* _jsmg_mqtt_mission_cfg_ */

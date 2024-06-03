@@ -9,12 +9,12 @@
       "APP_MAIN_PERF_ID":   91,
       "CHILD_TASK_PERF_ID": 92,
       
-      "MQTT_GW_CMD_TOPICID"  : 6242,
-      "BC_SCH_2_SEC_TOPICID" : 6227,
+      "JMSG_LIB_CMD_TOPICID":  0,
+      "JMSG_MQTT_CMD_TOPICID": 0,
+      "BC_SCH_2_SEC_TOPICID" : 0,
 
-      "MQTT_GW_HK_TLM_TOPICID"     : 2154,
-      "MQTT_GW_DISCRETE_PLUGIN_TOPICID": 2155,
-      "KIT_TO_PUB_WRAPPED_TLM_TOPICID": 2146,
+      "JMSG_MQTT_STATUS_TLM_TOPICID"  : 0,
+      "KIT_TO_PUB_WRAPPED_TLM_TOPICID": 0,
             
       "CMD_PIPE_NAME":  "MQTT_CMD_PIPE",
       "CMD_PIPE_DEPTH": 5,
@@ -37,12 +37,11 @@
       
       "MQTT_CLIENT_NAME":       "basecamp-dev",
       "MQTT_CLIENT_YIELD_TIME": 1000,
-      
-      "MQTT_TOPIC_TBL_DEF_FILE": "/cf/mqtt_gw_topics.json",
-            
+                  
       "CHILD_NAME":       "MQTT_CHILD",
       "CHILD_STACK_SIZE": 32768,
-      "CHILD_PRIORITY":   120
+      "CHILD_PRIORITY":   120,
       
+      "JMSG_TOPIC_TBL_FILE": "/cf/jmsg_topics.json"      
    }
 }

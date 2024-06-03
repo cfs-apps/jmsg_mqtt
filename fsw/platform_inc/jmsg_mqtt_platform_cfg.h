@@ -13,7 +13,7 @@
 ** GNU Affero General Public License for more details.
 **
 **  Purpose:
-**    Define platform configurations for the MQTT Gateway application
+**    Define platform configurations for the JMSG MQTT Gateway application
 **
 **  Notes:
 **    1. The MQTT_GW_TOPIC_LEN definition is based on KIT_TO's definition
@@ -22,33 +22,21 @@
 **
 */
 
-#ifndef _mqtt_gw_platform_cfg_
-#define _mqtt_gw_platform_cfg_
+#ifndef _jmsg_mqtt_platform_cfg_
+#define _jmsg_mqtt_platform_cfg_
 
 /*
 ** Includes
 */
 
-#include "mqtt_gw_mission_cfg.h"
-#include "kit_to_eds_defines.h"
+#include "jmsg_mqtt_mission_cfg.h"
 
 /******************************************************************************
 ** Platform Deployment Configurations
 */
 
-#define MQTT_GW_PLATFORM_REV   0
-#define MQTT_GW_INI_FILENAME   "/cf/mqtt_gw_ini.json"
+#define JMSG_MQTT_APP_PLATFORM_REV   0
+#define JMSG_MQTT_APP_INI_FILENAME   "/cf/jmsg_mqtt_ini.json"
 
 
-/******************************************************************************
-** These will be in a spec file and the toolchain will create these
-** definitions.
-*/
-
-/*
-** mqtt topic string length
-*/
-#define MQTT_GW_TOPIC_LEN  KIT_TO_MAX_WRAPPED_SB_MSG_LEN
-
-
-#endif /* _mqtt_gw_platform_cfg_ */
+#endif /* _jmsg_mqtt_platform_cfg_ */

@@ -18,7 +18,7 @@
 ** Notes:
 **   1. Each supported MQTT topic is listed in a JSON file and each
 **      topic has a JSON file that defines the topic's content.
-**   2. The Basecamp JSON table coding ideom is use a separate object to manage 
+**   2. The Basecamp JSON table coding idiom is to use a separate object to manage 
 **      the table. Since MQTT manager has very little functionality beyond
 **      processing the table, a single object is used for management functions
 **      and table processing.
@@ -33,7 +33,7 @@
 */
 
 #include "app_cfg.h"
-#include "msg_trans.h"
+#include "mqmsg_trans.h"
 #include "mqtt_client.h"
 
 
@@ -46,11 +46,8 @@
 ** Event Message IDs
 */
 
-#define MQTT_MGR_SUBSCRIBE_EID                (MQTT_MGR_BASE_EID + 0)
-#define MQTT_MGR_UNSUBSCRIBE_EID              (MQTT_MGR_BASE_EID + 1)
-#define MQTT_MGR_CONFIG_TOPIC_PLUGIN_EID      (MQTT_MGR_BASE_EID + 2)
-#define MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID (MQTT_MGR_BASE_EID + 3)
-#define MQTT_MGR_RECONNECT_EID                (MQTT_MGR_BASE_EID + 4)
+#define MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID  (MQTT_MGR_BASE_EID + 0)
+#define MQTT_MGR_RECONNECT_EID             (MQTT_MGR_BASE_EID + 1)
 
 /**********************/
 /** Type Definitions **/
@@ -83,14 +80,14 @@ typedef struct
    
    bool    SbTopicTestActive;
    int16   SbTopicTestParam;
-   MQTT_GW_TopicPlugin_Enum_t  SbTopicTestId;
+   JMSG_USR_TopicPlugin_Enum_t  SbTopicTestId;
    
    /*
    ** Contained Objects
    */
    
    MQTT_CLIENT_Class_t  MqttClient;
-   MSG_TRANS_Class_t    MsgTrans;  
+   MQMSG_TRANS_Class_t  MqMsgTrans;  
    
 } MQTT_MGR_Class_t;
 
@@ -118,37 +115,6 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
 **
 */
 bool MQTT_MGR_ChildTaskCallback(CHILDMGR_Class_t *ChildMgr);
-
-
-/******************************************************************************
-** Function: MQTT_MGR_ConfigSbTopicTestCmd
-**
-** Start/stop a topic test. 
-**
-** Notes:
-**   1. Topic tests verify the topic SB-to-MQTT translation path. The tests 
-**      create and send SB topic messages. These messages are looped back
-**      to MQTT_GW whcih causes the CfeToJson translation to occur. The tests
-**      are continuously run by MQTT_MGR_Execute() until they are commanded
-**      to stop. 
-**   2. In addition to testing the translation process they are useful for 
-**      verifying web apps that are processing the MQTT messages.
-**   3. Signature must match CMDMGR_CmdFuncPtr_t
-**
-*/
-bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
-** Function: MQTT_MGR_ConfigTopicPluginCmd
-**
-** Enable/disable a plugin topic
-**
-** Notes:
-**   1. Signature must match CMDMGR_CmdFuncPtr_t
-**
-*/
-bool MQTT_MGR_ConfigTopicPluginCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************

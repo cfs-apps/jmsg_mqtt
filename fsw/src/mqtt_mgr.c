@@ -32,33 +32,14 @@
 /** Type Definitions **/
 /**********************/
 
-typedef enum
-{
-   TOPIC_SUB_SB    = 1,
-   TOPIC_SUB_MQTT  = 2,
-   TOPIC_SUB_ERR   = 3,
-   TOPIC_SUB_UNDEF = 4
-
-} TopicSubscribeStatusEnum_t;
-
-typedef enum
-{
-   TOPIC_SUB_TO_ALL  = 1,
-   TOPIC_SUB_TO_MQTT = 2,
-   TOPIC_SUB_TO_SB   = 3
-   
-} TopicSubscribeToEnum_t;
-
 
 /*******************************/
 /** Local Function Prototypes **/
 /*******************************/
 
+static bool ConfigSubscription(const JMSG_TOPIC_TBL_Topic_t *Topic, JMSG_TOPIC_TBL_SubscriptionOptEnum_t ConfigOpt);
 static void MqttConnectionError(void);
 static void ProcessSbTopicMsgs(uint32 PerfId);
-static void SubscribeToTopicTblMsgs(TopicSubscribeToEnum_t SubscribeTo);
-static TopicSubscribeStatusEnum_t SubscribeToTopicMsg(enum MQTT_GW_TopicPlugin TopicPlugin, TopicSubscribeToEnum_t SubscribeTo);
-static bool UnsubscribeFromTopicMsg(enum MQTT_GW_TopicPlugin TopicPlugin);
 
 
 /*****************/
@@ -97,18 +78,20 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
    
    CFE_SB_CreatePipe(&MqttMgr->TopicPipe, INITBL_GetIntConfig(IniTbl, CFG_TOPIC_PIPE_DEPTH),
                      INITBL_GetStrConfig(IniTbl, CFG_TOPIC_PIPE_NAME));
-   
+
+   JMSG_TOPIC_TBL_RegisterConfigSubscriptionCallback(ConfigSubscription);
+                                            
    MQTT_CLIENT_Constructor(&MqttMgr->MqttClient, IniTbl);
 
-   MSG_TRANS_Constructor(&MqttMgr->MsgTrans, IniTbl, TblMgr);
+   MQMSG_TRANS_Constructor(&MqttMgr->MqMsgTrans, IniTbl);
 
-   if (MqttMgr->MqttClient.Connected)
-   {
-      SubscribeToTopicTblMsgs(TOPIC_SUB_TO_ALL);
-   }
+   /* Must be called after other objects constructed */
+   
+   TBLMGR_RegisterTblWithDef(TblMgr, JMSG_TOPIC_TBL_NAME, 
+                             JMSG_TOPIC_TBL_LoadCmd, JMSG_TOPIC_TBL_DumpCmd,  
+                             INITBL_GetStrConfig(IniTbl, CFG_JMSG_TOPIC_TBL_FILE));
    
 } /* End MQTT_MGR_Constructor() */
-
 
 
 /******************************************************************************
@@ -133,126 +116,13 @@ bool MQTT_MGR_ChildTaskCallback(CHILDMGR_Class_t *ChildMgr)
 
 
 /******************************************************************************
-** Function: MQTT_MGR_ConfigTopicPluginCmd
-**
-** Enable/disable a plugin topic
-**
-** Notes:
-**   1. Signature must match CMDMGR_CmdFuncPtr_t
-**   2. The functions called send error events so this function only needs to
-**      report a successful command. 
-**
-*/
-bool MQTT_MGR_ConfigTopicPluginCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
-{
-
-   const MQTT_GW_ConfigTopicPlugin_CmdPayload_t *ConfigTopicPlugin = CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConfigTopicPlugin_t);
-   bool RetStatus = false;
-   TopicSubscribeStatusEnum_t TopicSubscription;
-   
-   if (ConfigTopicPlugin->Action == APP_C_FW_ConfigEnaAction_ENABLE)
-   {
-      if ((RetStatus = MQTT_TOPIC_TBL_EnablePlugin(ConfigTopicPlugin->Id)))
-      {
-         TopicSubscription = SubscribeToTopicMsg(ConfigTopicPlugin->Id, TOPIC_SUB_TO_ALL);
-         if ((TopicSubscription == TOPIC_SUB_MQTT) || (TopicSubscription == TOPIC_SUB_SB))
-         {
-            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Sucessfully enabled topic %d",ConfigTopicPlugin->Id);
-         }
-         else
-         {
-            MQTT_TOPIC_TBL_DisablePlugin(ConfigTopicPlugin->Id);            
-         }
-      }
-   }
-   else if (ConfigTopicPlugin->Action == APP_C_FW_ConfigEnaAction_DISABLE)
-   {
-      if ((RetStatus = MQTT_TOPIC_TBL_DisablePlugin(ConfigTopicPlugin->Id)))
-      {
-         if ((RetStatus = UnsubscribeFromTopicMsg(ConfigTopicPlugin->Id)))
-         {
-            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Sucessfully disabled plugin topic %d",ConfigTopicPlugin->Id);
-         }
-      }
-   }
-   else
-   {
-      CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
-                        "Configure plugin topic %d command rejected. Invalid action %d",
-                        ConfigTopicPlugin->Id, ConfigTopicPlugin->Action);
-   }
-  
-   return RetStatus;
-    
-   
-} /* End MQTT_MGR_ConfigTopicPluginCmd() */
-
-
-/******************************************************************************
-** Function: MQTT_MGR_ConfigSbTopicTestCmd
-**
-** Notes:
-**   None
-*/
-bool MQTT_MGR_ConfigSbTopicTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
-{
-
-   const MQTT_GW_ConfigSbTopicTest_CmdPayload_t *ConfigSbTopicTest = CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConfigSbTopicTest_t);
-   bool RetStatus = false;
-
-   if (MQTT_TOPIC_TBL_ValidTopicPlugin(ConfigSbTopicTest->Id))
-   {
-      if (ConfigSbTopicTest->Action == APP_C_FW_ConfigExeAction_START)
-      {
-         MqttMgr->SbTopicTestId     = ConfigSbTopicTest->Id;
-         MqttMgr->SbTopicTestParam  = ConfigSbTopicTest->Param;
-         MqttMgr->SbTopicTestActive = true;
-         RetStatus = true;
-         CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                           "Started SB test for topic ID %d(table index %d)",
-                           ConfigSbTopicTest->Id,(ConfigSbTopicTest->Id-1));
-         MQTT_TOPIC_TBL_RunSbMsgTest(MqttMgr->SbTopicTestId, true, ConfigSbTopicTest->Param);
-      }
-      else if (ConfigSbTopicTest->Action == APP_C_FW_ConfigExeAction_STOP)
-      {
-         MqttMgr->SbTopicTestId = ConfigSbTopicTest->Id;
-         MqttMgr->SbTopicTestActive = false;
-         RetStatus = true;
-         CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                           "Stopped SB test for topic ID %d(table index %d)",
-                           ConfigSbTopicTest->Id,(ConfigSbTopicTest->Id-1));
-      }
-      else
-      {
-         CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID, CFE_EVS_EventType_ERROR, 
-                           "Configure SB topic test command rejected. Invalid start/stop parameter %d", 
-                           ConfigSbTopicTest->Action);
-      
-      }
-   }
-   else
-   {
-      CFE_EVS_SendEvent(MQTT_MGR_CONFIG_TOPIC_PLUGIN_TEST_EID, CFE_EVS_EventType_ERROR, 
-                        "Configure SB topic test command rejected. Id %d(table index %d) either invalid or not loaded", 
-                        ConfigSbTopicTest->Id,(ConfigSbTopicTest->Id-1));
-
-   }
-  
-   return RetStatus;
-   
-} /* End MQTT_MGR_ConfigSbTopicTest() */
-
-
-/******************************************************************************
 ** Function: MQTT_MGR_ConnectToMqttBrokerCmd
 **
 */
 bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
-   const MQTT_GW_ConnectToMqttBroker_CmdPayload_t *ConnectToMqttBrokerCmd = 
-                                               CMDMGR_PAYLOAD_PTR(MsgPtr, MQTT_GW_ConnectToMqttBroker_t);
+   const JMSG_MQTT_ConnectToMqttBroker_CmdPayload_t *ConnectToMqttBrokerCmd = 
+                                               CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_MQTT_ConnectToMqttBroker_t);
    bool RetStatus = false;
    const char *BrokerAddress;
    uint32     BrokerPort;
@@ -288,7 +158,7 @@ bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *
    // Connect sends event messages
    if (MQTT_CLIENT_Connect(ClientName, BrokerAddress, BrokerPort))
    {
-      SubscribeToTopicTblMsgs(TOPIC_SUB_TO_MQTT);
+      JMSG_TOPIC_TBL_SubscribeToAll(JMSG_TOPIC_TBL_SUB_JMSG);
       RetStatus = true;
    }
    
@@ -310,7 +180,7 @@ void MQTT_MGR_Execute(uint32 PerfId)
    
    if (MqttMgr->SbTopicTestActive)
    {
-      MQTT_TOPIC_TBL_RunSbMsgTest(MqttMgr->SbTopicTestId, false, MqttMgr->SbTopicTestParam);
+      JMSG_TOPIC_TBL_RunTopicPluginTest(MqttMgr->SbTopicTestId, false, MqttMgr->SbTopicTestParam);
    }
 
 } /* End MQTT_MGR_Execute() */
@@ -327,7 +197,7 @@ bool MQTT_MGR_ReconnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t
 
    if (MQTT_CLIENT_Reconnect())
    {
-      SubscribeToTopicTblMsgs(TOPIC_SUB_TO_MQTT);
+      JMSG_TOPIC_TBL_SubscribeToAll(JMSG_TOPIC_TBL_SUB_JMSG);
       RetStatus = true;
    }
    
@@ -345,11 +215,102 @@ bool MQTT_MGR_ReconnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t
 void MQTT_MGR_ResetStatus(void)
 {
 
+   JMSG_TOPIC_TBL_ResetStatus();
    MqttMgr->UnpublishedSbMsgCnt = 0;
    MQTT_CLIENT_ResetStatus();
-   MSG_TRANS_ResetStatus();
+   MQMSG_TRANS_ResetStatus();
 
 } /* End MQTT_MGR_ResetStatus() */
+
+
+/******************************************************************************
+** Function: ConfigSubscription
+**
+** Callback function that is called when a topic plugin's configuration
+** is changed. Perform functions that apply to the network layer.
+**
+*/
+static bool ConfigSubscription(const JMSG_TOPIC_TBL_Topic_t *Topic, 
+                               JMSG_TOPIC_TBL_SubscriptionOptEnum_t ConfigOpt)
+{
+
+   bool RetStatus = false;
+   int32 SbStatus;
+   CFE_SB_Qos_t Qos;
+            
+   switch (ConfigOpt)
+   {
+
+      case JMSG_TOPIC_TBL_SUB_SB:
+         Qos.Priority    = 0;
+         Qos.Reliability = 0;
+         SbStatus = CFE_SB_SubscribeEx(CFE_SB_ValueToMsgId(Topic->Cfe), MqttMgr->TopicPipe, Qos, 20);
+         if (SbStatus == CFE_SUCCESS)
+         {
+            RetStatus = true;
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_INFORMATION, 
+                           "Subscribed to SB for topic 0x%04X(%d)", Topic->Cfe, Topic->Cfe);
+         }
+         else
+         {
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_ERROR, 
+                           "Error subscribing to SB for topic 0x%04X(%d)", Topic->Cfe, Topic->Cfe);
+         }
+         break;
+         
+      case JMSG_TOPIC_TBL_SUB_JMSG:
+         if (MQTT_CLIENT_Subscribe(Topic->Name, MQTT_CLIENT_QOS2, MQMSG_TRANS_ProcessMqttMsg))
+         {
+            RetStatus = true;
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_INFORMATION, 
+                              "Subscribed to MQTT client for topic %s", Topic->Name);
+         }
+         else
+         {
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_ERROR, 
+                    "Error subscribing to MQTT client for topic %s", Topic->Name);
+         }
+         break;
+         
+      case JMSG_TOPIC_TBL_UNSUB_SB:
+         SbStatus = CFE_SB_Unsubscribe(CFE_SB_ValueToMsgId(Topic->Cfe), MqttMgr->TopicPipe);
+         if(SbStatus == CFE_SUCCESS)
+         {
+            RetStatus = true;
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_INFORMATION, 
+                             "Unsubscribed from SB for topic %s", Topic->Name);
+         }
+         else
+         {
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_ERROR, 
+                             "Error unsubscribing from SB for topic %s, status = %d", Topic->Name, SbStatus);            
+         }
+         break;
+      
+      case JMSG_TOPIC_TBL_UNSUB_JMSG:
+         if (MQTT_CLIENT_Unsubscribe(Topic->Name))
+         {
+            RetStatus = true;
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_INFORMATION, 
+                              "Unsubscribed from MQTT client for topic %s", Topic->Name);
+         }
+         else
+         {
+            CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_INFORMATION, 
+                              "Error unsubscribing from MQTT client for topic %s", Topic->Name);
+         }
+         break;
+      
+      default:
+         CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_ERROR, 
+                           "Invalid subscription configuration option for topic %s", Topic->Name);
+         break;
+
+   } /** End switch */
+
+   return RetStatus;
+   
+} /* End ConfigSubscription() */
 
 
 /******************************************************************************
@@ -374,7 +335,7 @@ static void MqttConnectionError(void)
          
          if (MQTT_CLIENT_Reconnect())
          {
-            SubscribeToTopicTblMsgs(TOPIC_SUB_TO_MQTT);
+            JMSG_TOPIC_TBL_SubscribeToAll(JMSG_TOPIC_TBL_SUB_JMSG);
          }
          MqttMgr->Reconnect.Attempts++; 
          MqttMgr->Reconnect.DelayCnt = 0;
@@ -409,7 +370,7 @@ static void ProcessSbTopicMsgs(uint32 PerfId)
       {
          if (MqttMgr->MqttClient.Connected)
          {
-            if (MSG_TRANS_ProcessSbMsg(&SbBufPtr->Msg, &Topic, &Payload))
+            if (MQMSG_TRANS_ProcessSbMsg(&SbBufPtr->Msg, &Topic, &Payload))
             {
                if(!MQTT_CLIENT_Publish(Topic, Payload))
                {
@@ -426,154 +387,3 @@ static void ProcessSbTopicMsgs(uint32 PerfId)
    } while(SbStatus == CFE_SUCCESS);
    
 } /* End ProcessSbTopicMsgs() */
-
-
-/******************************************************************************
-** Function: SubscribeToTopicMsg
-**
-** Subscribe to topic message on the SB and MQTT_CLIENT based on a topic's
-** definition in the topic table.
-**
-*/
-static TopicSubscribeStatusEnum_t SubscribeToTopicMsg(enum MQTT_GW_TopicPlugin TopicPlugin,
-                                                      TopicSubscribeToEnum_t SubscribeTo )
-{
-   
-   CFE_SB_Qos_t Qos;
-   const MQTT_TOPIC_TBL_Topic_t *Topic;
-   TopicSubscribeStatusEnum_t TopicSubscription = TOPIC_SUB_ERR;
-
-   Qos.Priority    = 0;
-   Qos.Reliability = 0;
-   Topic = MQTT_TOPIC_TBL_GetTopic(TopicPlugin);
-   if (Topic != NULL)   
-   {
-      if (Topic->Enabled)
-      {
-         // Table load logic doesn't enable an invalid SbRole so don't report invalid
-         if (Topic->SbRole == MQTT_GW_TopicSbRole_PUBLISH)
-         {
-            if (SubscribeTo == TOPIC_SUB_TO_ALL || SubscribeTo == TOPIC_SUB_TO_MQTT)
-            {
-               if (MQTT_CLIENT_Subscribe(Topic->Mqtt, MQTT_CLIENT_QOS2, MSG_TRANS_ProcessMqttMsg))
-               {
-                  TopicSubscription = TOPIC_SUB_MQTT;
-                  CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_EID, CFE_EVS_EventType_INFORMATION, 
-                          "Subscribed to MQTT client for topic %s", Topic->Mqtt);
-               }
-               else
-               {
-                  CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_EID, CFE_EVS_EventType_ERROR, 
-                          "Error subscribing to MQTT client for topic %s", Topic->Mqtt);
-               }
-            }
-         }
-         else if (Topic->SbRole == MQTT_GW_TopicSbRole_SUBSCRIBE)
-         {
-            if (SubscribeTo == TOPIC_SUB_TO_ALL || SubscribeTo == TOPIC_SUB_TO_SB)
-            {
-               TopicSubscription = TOPIC_SUB_SB;
-               CFE_SB_SubscribeEx(CFE_SB_ValueToMsgId(Topic->Cfe), MqttMgr->TopicPipe, Qos, 20);
-               CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_EID, CFE_EVS_EventType_INFORMATION, 
-                       "Subscribed to SB for topic 0x%04X(%d)", Topic->Cfe, Topic->Cfe);
-            }
-         }
-      } /* End if enabled */
-      else
-      {
-         TopicSubscription = TOPIC_SUB_UNDEF;
-      }
-   } /* End if not NULL */
-
-   return TopicSubscription;
-   
-} /* End SubscribeToTopicMsg() */
-
-
-/******************************************************************************
-** Function: SubscribeToTopicTblMsgs
-**
-** Subscribe to all topics defined in the topic table. A topic's SbRole
-** determines which type of subscription will be performed.
-**
-*/
-static void SubscribeToTopicTblMsgs(TopicSubscribeToEnum_t SubscribeTo)
-{
-
-   TopicSubscribeStatusEnum_t TopicSubscription;
-   
-   uint16 SbSubscribeCnt = 0;
-   uint16 MqttSubscribeCnt = 0;
-   uint16 SubscribeErr = 0;
-   
- 
-   // MQTT_GW_TopicPlugin_Enum_t_MAX is defined as a last enum value to represent null 
-   for (enum MQTT_GW_TopicPlugin i=MQTT_GW_TopicPlugin_Enum_t_MIN; i < MQTT_GW_TopicPlugin_Enum_t_MAX; i++)
-   {
-      TopicSubscription = SubscribeToTopicMsg(i, SubscribeTo);
-      switch (TopicSubscription)
-      {
-         case TOPIC_SUB_SB:
-            SbSubscribeCnt++;
-            break;
-         case TOPIC_SUB_MQTT:
-            MqttSubscribeCnt++;
-            break;
-         case TOPIC_SUB_ERR:
-            SubscribeErr++;
-            break;
-         default:
-            break;
-      } /** End switch */
-   } /* End topic loop */
-    
-   CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_EID, CFE_EVS_EventType_INFORMATION, 
-                     "Topic subscriptions: SB %d, MQTT %d, Errors %d",
-                     SbSubscribeCnt, MqttSubscribeCnt, SubscribeErr);
- 
-} /* End SubscribeToTopicTblMsgs() */
-
-
-/******************************************************************************
-** Function: UnsubscribeFromTopicMsg
-**
-** Unsubscribe to topic messages on the SB and MQTT_CLIENT based on a topics
-** definition in the topic table.
-**
-*/
-static bool UnsubscribeFromTopicMsg(enum MQTT_GW_TopicPlugin TopicPlugin)
-{
-
-   const MQTT_TOPIC_TBL_Topic_t *Topic;
-   bool RetStatus = false;
-   int32 SbStatus;
-
-   Topic = MQTT_TOPIC_TBL_GetDisabledTopic(TopicPlugin);
-   if (Topic != NULL)   
-   {
-      if (Topic->Enabled == false)
-      {
-         if (Topic->SbRole == MQTT_GW_TopicSbRole_PUBLISH)
-         {
-            RetStatus = MQTT_CLIENT_Unsubscribe(Topic->Mqtt);
-         }
-         else if (Topic->SbRole == MQTT_GW_TopicSbRole_SUBSCRIBE)
-         {
-            SbStatus = CFE_SB_Unsubscribe(CFE_SB_ValueToMsgId(Topic->Cfe), MqttMgr->TopicPipe);
-            if(SbStatus == CFE_SUCCESS)
-            {
-               RetStatus = true;
-            }
-            else
-            {
-               CFE_EVS_SendEvent(MQTT_MGR_UNSUBSCRIBE_EID, CFE_EVS_EventType_ERROR,
-                                 "Error unsubscribing plugin topic ID %d(index %d) with SB message ID 0x%04X(%d). Unsubscribe status 0x%8X",
-                                 (TopicPlugin+1), TopicPlugin, Topic->Cfe, Topic->Cfe, SbStatus);
-            }
-         }
-      } /* End if disabled */
-   } /* End if not NULL */
-
-   return RetStatus;
- 
-} /* End UnsubscribeFromTopicMsg() */

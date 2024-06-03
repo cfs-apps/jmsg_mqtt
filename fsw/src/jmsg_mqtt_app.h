@@ -24,8 +24,8 @@
 **      with a custom function to manage the translation.
 **
 */
-#ifndef _mqtt_gw_app_
-#define _mqtt_gw_app_
+#ifndef _jmsg_mqtt_app_
+#define _jmsg_mqtt_app_
 
 /*
 ** Includes
@@ -42,10 +42,10 @@
 ** Events
 */
 
-#define MQTT_GW_INIT_APP_EID      (MQTT_GW_BASE_EID + 0)
-#define MQTT_GW_NOOP_EID          (MQTT_GW_BASE_EID + 1)
-#define MQTT_GW_EXIT_EID          (MQTT_GW_BASE_EID + 2)
-#define MQTT_GW_INVALID_MID_EID   (MQTT_GW_BASE_EID + 3)
+#define JMSG_MQTT_APP_INIT_APP_EID      (JMSG_MQTT_APP_BASE_EID + 0)
+#define JMSG_MQTT_APP_NOOP_EID          (JMSG_MQTT_APP_BASE_EID + 1)
+#define JMSG_MQTT_APP_EXIT_EID          (JMSG_MQTT_APP_BASE_EID + 2)
+#define JMSG_MQTT_APP_INVALID_MID_EID   (JMSG_MQTT_APP_BASE_EID + 3)
 
 
 /**********************/
@@ -54,17 +54,13 @@
 
 
 /******************************************************************************
-** Command Packets
+** Command & Telemetry Packets
 */
 /* See EDS */
 
-/******************************************************************************
-** Telemetry Packets
-*/
-/* See EDS */
 
 /******************************************************************************
-** MQTT_Class
+** MQTT_APP_Class
 */
 typedef struct 
 {
@@ -83,31 +79,32 @@ typedef struct
    ** Telemetry Packets
    */
    
-   MQTT_GW_HkTlm_t   HkTlm;
+   JMSG_MQTT_StatusTlm_t   StatusTlm;
 
    
    /*
-   ** MQTT_GW State & Contained Objects
+   ** JMSG_MQTT State & Contained Objects
    */ 
    
    uint32 PollCmdInterval;
    uint32 PollCmdCnt;
    uint32 PerfId;
-   
+
+   CFE_SB_MsgId_t  JMsgLibCmdMid;   
    CFE_SB_MsgId_t  CmdMid;
    CFE_SB_MsgId_t  ExecuteMid;
-   CFE_SB_MsgId_t  SendHkMid;
+   CFE_SB_MsgId_t  SendStatusMid;
        
    MQTT_MGR_Class_t  MqttMgr;
  
-} MQTT_GW_Class_t;
+} JMSG_MQTT_APP_Class_t;
 
 
 /*******************/
 /** Exported Data **/
 /*******************/
 
-extern MQTT_GW_Class_t  MqttGw;
+extern JMSG_MQTT_APP_Class_t  JmsgMqttApp;
 
 
 /************************/
@@ -119,7 +116,7 @@ extern MQTT_GW_Class_t  MqttGw;
 ** Function: MQTT_AppMain
 **
 */
-void MQTT_GW_AppMain(void);
+void JMSG_MQTT_AppMain(void);
 
 
-#endif /* _mqtt_gw_app_ */
+#endif /* _jmsg_mqtt_app_ */

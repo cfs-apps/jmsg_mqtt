@@ -18,7 +18,7 @@
 ** Notes:
 **   1. Each supported MQTT topic is listed in a JSON file and each
 **      topic has a JSON file that defines the topic's content.
-**   2. The Basecamp JSON table coding ideom is use a separate object to manage 
+**   2. The Basecamp JSON table coding idiom is to use a separate object to manage 
 **      the table. Since MQTT manager has very little functionality beyond
 **      processing the table, a single object is used for management functions
 **      and table processing.
@@ -35,8 +35,7 @@
 #include "MQTTClient.h"
 
 #include "app_cfg.h"
-#include "mqtt_topic_tbl.h"
-
+#include "jmsg_topic_tbl.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -47,10 +46,10 @@
 ** Events
 */
 
-#define MSG_TRANS_PROCESS_MQTT_MSG_EID      (MSG_TRANS_BASE_EID + 0)
-#define MSG_TRANS_PROCESS_MQTT_MSG_INFO_EID (MSG_TRANS_BASE_EID + 1)
-#define MSG_TRANS_PROCESS_SB_MSG_EID        (MSG_TRANS_BASE_EID + 2)
-#define MSG_TRANS_PROCESS_SB_MSG_INFO_EID   (MSG_TRANS_BASE_EID + 3)
+#define MQMSG_TRANS_PROCESS_MQTT_MSG_EID      (MQMSG_TRANS_BASE_EID + 0)
+#define MQMSG_TRANS_PROCESS_MQTT_MSG_INFO_EID (MQMSG_TRANS_BASE_EID + 1)
+#define MQMSG_TRANS_PROCESS_SB_MSG_EID        (MQMSG_TRANS_BASE_EID + 2)
+#define MQMSG_TRANS_PROCESS_SB_MSG_INFO_EID   (MQMSG_TRANS_BASE_EID + 3)
 
 
 /**********************/
@@ -94,14 +93,8 @@ typedef struct
    */
    
    JSON_MSG_Pkt_t  JsonMsgPkt;
-   
-   /*
-   ** Contained Objects
-   */
-
-   MQTT_TOPIC_TBL_Class_t TopicTbl;
-   
-} MSG_TRANS_Class_t;
+      
+} MQMSG_TRANS_Class_t;
 
 
 /************************/
@@ -110,44 +103,43 @@ typedef struct
 
 
 /******************************************************************************
-** Function: MSG_TRANS_Constructor
+** Function: MQMSG_TRANS_Constructor
 **
 ** Notes:
 **    1. This function must be called prior to any other functions being
 **       called using the same cmdmgr instance.
 */
-void MSG_TRANS_Constructor(MSG_TRANS_Class_t *MsgTransPtr,
-                           const INITBL_Class_t *IniTbl,
-                           TBLMGR_Class_t *TblMgr);
+void MQMSG_TRANS_Constructor(MQMSG_TRANS_Class_t *MsgTransPtr,
+                             const INITBL_Class_t *IniTbl);
 
 
 /******************************************************************************
-** Function: MSG_TRANS_ProcessMqttMsg
+** Function: MQMSG_TRANS_ProcessMqttMsg
 **
 ** Notes:
 **   1. Signature must mach MQTT_CLIENT_MsgCallback
 **
 */
-void MSG_TRANS_ProcessMqttMsg(MessageData *MsgData);
+void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData);
 
 
 /******************************************************************************
-** Function: MSG_TRANS_ProcessSbMsg
+** Function: MQMSG_TRANS_ProcessSbMsg
 **
 ** Notes:
 **   None
 **
 */
-bool MSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPt,
+bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPt,
                             const char **Topic, const char **Payload);
 
 
 /******************************************************************************
-** Function: MSG_TRANS_ResetStatus
+** Function: MQMSG_TRANS_ResetStatus
 **
 ** Reset counters and status flags to a known reset state.
 **
 */
-void MSG_TRANS_ResetStatus(void);
+void MQMSG_TRANS_ResetStatus(void);
 
 #endif /* _msg_trans_ */

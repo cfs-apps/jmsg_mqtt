@@ -29,8 +29,9 @@
 ** Includes
 */
 
-#include "mqtt_gw_eds_typedefs.h"
-#include "mqtt_gw_platform_cfg.h"
+#include "jmsg_lib_eds_typedefs.h"
+#include "jmsg_mqtt_eds_typedefs.h"
+#include "jmsg_mqtt_platform_cfg.h"
 #include "app_c_fw.h"
 
 
@@ -44,10 +45,11 @@
 ** 1.0 - Initial refactoring of Alan's MQTT
 ** 1.4 - refactored sbmsg plugin into seperate cmd/tlm plugins
 ** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
+** 2.0 - Refactor to create a new JMSG_LIB
 */
 
-#define  MQTT_GW_MAJOR_VER      1
-#define  MQTT_GW_MINOR_VER      6
+#define  JMSG_MQTT_APP_MAJOR_VER      2
+#define  JMSG_MQTT_APP_MINOR_VER      0
 
 
 /******************************************************************************
@@ -69,15 +71,14 @@
 ** XX(name,type)
 */
 
-#define CFG_APP_CFE_NAME                    APP_CFE_NAME
+#define CFG_APP_CFE_NAME         APP_CFE_NAME
+#define CFG_APP_MAIN_PERF_ID     APP_MAIN_PERF_ID
+#define CFG_CHILD_TASK_PERF_ID   CHILD_TASK_PERF_ID
 
-#define CFG_APP_MAIN_PERF_ID                APP_MAIN_PERF_ID
-#define CFG_CHILD_TASK_PERF_ID              CHILD_TASK_PERF_ID
-
-#define CFG_MQTT_GW_CMD_TOPICID             MQTT_GW_CMD_TOPICID
-#define CFG_SEND_HK_TLM_TOPICID             BC_SCH_2_SEC_TOPICID
-#define CFG_MQTT_GW_HK_TLM_TOPICID          MQTT_GW_HK_TLM_TOPICID
-#define CFG_MQTT_GW_DISCRETE_PLUGIN_TOPICID MQTT_GW_DISCRETE_PLUGIN_TOPICID
+#define CFG_JMSG_LIB_CMD_TOPICID            JMSG_LIB_CMD_TOPICID
+#define CFG_JMSG_MQTT_CMD_TOPICID           JMSG_MQTT_CMD_TOPICID
+#define CFG_SEND_STATUS_TLM_TOPICID         BC_SCH_2_SEC_TOPICID
+#define CFG_JMSG_MQTT_STATUS_TLM_TOPICID    JMSG_MQTT_STATUS_TLM_TOPICID
 #define CFG_KIT_TO_PUB_WRAPPED_TLM_TOPICID  KIT_TO_PUB_WRAPPED_TLM_TOPICID
 
 #define CFG_CMD_PIPE_NAME            CMD_PIPE_NAME
@@ -96,21 +97,21 @@
 
 #define CFG_MQTT_CLIENT_NAME         MQTT_CLIENT_NAME
 #define CFG_MQTT_CLIENT_YIELD_TIME   MQTT_CLIENT_YIELD_TIME
-#define CFG_MQTT_TOPIC_TBL_DEF_FILE  MQTT_TOPIC_TBL_DEF_FILE
 
 #define CFG_CHILD_NAME               CHILD_NAME
 #define CFG_CHILD_STACK_SIZE         CHILD_STACK_SIZE
 #define CFG_CHILD_PRIORITY           CHILD_PRIORITY
 
+#define CFG_JMSG_TOPIC_TBL_FILE      JMSG_TOPIC_TBL_FILE
 
 #define APP_CONFIG(XX) \
    XX(APP_CFE_NAME,char*) \
    XX(APP_MAIN_PERF_ID,uint32) \
    XX(CHILD_TASK_PERF_ID,uint32) \
-   XX(MQTT_GW_CMD_TOPICID,uint32) \
+   XX(JMSG_LIB_CMD_TOPICID,uint32) \
+   XX(JMSG_MQTT_CMD_TOPICID,uint32) \
    XX(BC_SCH_2_SEC_TOPICID,uint32) \
-   XX(MQTT_GW_HK_TLM_TOPICID,uint32) \
-   XX(MQTT_GW_DISCRETE_PLUGIN_TOPICID,uint32) \
+   XX(JMSG_MQTT_STATUS_TLM_TOPICID,uint32) \
    XX(KIT_TO_PUB_WRAPPED_TLM_TOPICID,uint32) \
    XX(CMD_PIPE_NAME,char*) \
    XX(CMD_PIPE_DEPTH,uint32) \
@@ -125,22 +126,12 @@
    XX(MQTT_RECONNECT_PERIOD,uint32) \
    XX(MQTT_CLIENT_NAME,char*) \
    XX(MQTT_CLIENT_YIELD_TIME,uint32) \
-   XX(MQTT_TOPIC_TBL_DEF_FILE,char*) \
    XX(CHILD_NAME,char*) \
    XX(CHILD_STACK_SIZE,uint32) \
-   XX(CHILD_PRIORITY,uint32)
+   XX(CHILD_PRIORITY,uint32) \
+   XX(JMSG_TOPIC_TBL_FILE,char*)
 
 DECLARE_ENUM(Config,APP_CONFIG)
-
-
-/******************************************************************************
-** Command Macros
-** - Commands implmented by child task are annotated with a comment
-** - Load/dump table definitions are placeholders for JSON table
-*/
-
-#define MQTT_GW_TBL_LOAD_CMD_FC   (CMDMGR_APP_START_FC +  0)
-#define MQTT_GW_TBL_DUMP_CMD_FC   (CMDMGR_APP_START_FC +  1)
 
 
 /******************************************************************************
@@ -151,13 +142,11 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** exceeded so it is the developer's responsibility to verify the ranges. 
 */
 
-#define MQTT_GW_BASE_EID              (APP_C_FW_APP_BASE_EID +  0)
-#define MQTT_MGR_BASE_EID             (APP_C_FW_APP_BASE_EID + 20)
-#define MQTT_CLIENT_BASE_EID          (APP_C_FW_APP_BASE_EID + 40)
-#define MSG_TRANS_BASE_EID            (APP_C_FW_APP_BASE_EID + 60)
-#define MQTT_TOPIC_TBL_BASE_EID       (APP_C_FW_APP_BASE_EID + 80)
+#define JMSG_MQTT_APP_BASE_EID   (APP_C_FW_APP_BASE_EID +  0)
+#define MQTT_MGR_BASE_EID        (APP_C_FW_APP_BASE_EID + 20)
+#define MQTT_CLIENT_BASE_EID     (APP_C_FW_APP_BASE_EID + 40)
+#define MQMSG_TRANS_BASE_EID     (APP_C_FW_APP_BASE_EID + 60)
 
-// Topic plugin macros are defined in mqtt_gw_topic_plugin.h and start at (APP_C_FW_APP_BASE_EID + 200)
 
 /******************************************************************************
 ** MQTT Client
