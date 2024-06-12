@@ -190,8 +190,8 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
 **   None
 **
 */
-bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
-                            const char **Topic, const char **Payload)
+bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *CfeMsgPtr,
+                              const char **Topic, const char **Payload)
 {
    
    bool RetStatus = false;
@@ -204,7 +204,7 @@ bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
 
    *Topic   = NULL; 
    *Payload = NULL;
-   SbStatus = CFE_MSG_GetMsgId(MsgPtr, &MsgId);
+   SbStatus = CFE_MSG_GetMsgId(CfeMsgPtr, &MsgId);
    if (SbStatus == CFE_SUCCESS)
    {
    
@@ -217,7 +217,7 @@ bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPtr,
          
          CfeToJson = JMSG_TOPIC_TBL_GetCfeToJson(TopicIndex, &JsonMsgTopic);    
          
-         if (CfeToJson(&JsonMsgPayload, MsgPtr))
+         if (CfeToJson(&JsonMsgPayload, CfeMsgPtr))
          {
             *Topic   = JsonMsgTopic; 
             *Payload = JsonMsgPayload;

@@ -48,6 +48,10 @@
 
 #define MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID  (MQTT_MGR_BASE_EID + 0)
 #define MQTT_MGR_RECONNECT_EID             (MQTT_MGR_BASE_EID + 1)
+#define MQTT_MGR_START_TEST_EID            (MQTT_MGR_BASE_EID + 2)
+#define MQTT_MGR_STOP_TEST_EID             (MQTT_MGR_BASE_EID + 3)
+#define MQTT_MGR_SEND_CONNECTION_INFO_EID  (MQTT_MGR_BASE_EID + 4)
+
 
 /**********************/
 /** Type Definitions **/
@@ -78,9 +82,11 @@ typedef struct
    
    CFE_SB_PipeId_t TopicPipe;
    
-   bool    SbTopicTestActive;
-   int16   SbTopicTestParam;
-   JMSG_USR_TopicPlugin_Enum_t  SbTopicTestId;
+   CFE_ES_TaskId_t  PluginTestChildTaskId;
+   bool             PluginTestActive;
+   int16            PluginTestParam;
+   int32            PluginTestDelay;
+   JMSG_USR_TopicPlugin_Enum_t  PluginTestId;
    
    /*
    ** Contained Objects
@@ -106,8 +112,7 @@ typedef struct
 **   1. This must be classed prior to any other member functions.
 **
 */
-void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr,
-                          const INITBL_Class_t *IniTbl, TBLMGR_Class_t *TblMgr);
+void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr, const INITBL_Class_t *IniTbl);
 
 
 /******************************************************************************
@@ -159,6 +164,36 @@ bool MQTT_MGR_ReconnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t
 **
 */
 void MQTT_MGR_ResetStatus(void);
+
+
+/******************************************************************************
+** Function: MQTT_MGR_StartPluginTestCmd
+**
+** Notes:
+**   1. Signature must match CMDMGR_CmdFuncPtr_t
+**   2. DataObjPtr is not used
+*/
+bool MQTT_MGR_StartPluginTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: MQTT_MGR_SendConnectionInfoCmd
+**
+** Notes:
+**   1. Signature must match CMDMGR_CmdFuncPtr_t
+**   2. DataObjPtr is not used
+*/
+bool MQTT_MGR_SendConnectionInfoCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: MQTT_MGR_StopPluginTestCmd
+**
+** Notes:
+**   1. Signature must match CMDMGR_CmdFuncPtr_t
+**   2. DataObjPtr is not used
+*/
+bool MQTT_MGR_StopPluginTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _mqtt_mgr_ */

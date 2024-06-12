@@ -30,38 +30,22 @@
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
       
-      <EnumeratedDataType name="TblId" shortDescription="Table Identifiers. See app_c_fw.xml guidelines" >
-        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
-        <EnumerationList>
-          <Enumeration label="MQTT_TOPIC" value="0" shortDescription="MQTT message topics" />
-        </EnumerationList>
-      </EnumeratedDataType>
-
       
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
-
-      <ContainerDataType name="LoadTbl_CmdPayload" shortDescription="Load an app's JSON table">
-        <EntryList>
-          <Entry name="Id"       type="TblId"                   shortDescription="Table identifier" />
-          <Entry name="Type"     type="APP_C_FW/TblLoadOptions" shortDescription="Replace entire table or perform sparse entry updates" />
-          <Entry name="Filename" type="BASE_TYPES/PathName"     shortDescription="Full path and file name of table to be loaded" />
-       </EntryList>
-      </ContainerDataType>
-      
-      <ContainerDataType name="DumpTbl_CmdPayload" shortDescription="Dump an app's JSON table">
-        <EntryList>
-          <Entry name="Id"       type="TblId"               shortDescription="Table identifier" />
-          <Entry name="Filename" type="BASE_TYPES/PathName" shortDescription="Full path and file name of table to be dumped" />
-       </EntryList>
-      </ContainerDataType>
 
       <ContainerDataType name="ConnectToMqttBroker_CmdPayload" shortDescription="Connect to an MQTT broker">
         <EntryList>
           <Entry name="BrokerAddress" type="BASE_TYPES/PathName" shortDescription="URL of MQTT broker. Empty string will use app default" />
           <Entry name="BrokerPort"    type="BASE_TYPES/uint16"   shortDescription="Port of MQTT broker. A zero will use app default" />
           <Entry name="ClientName"    type="BASE_TYPES/PathName" shortDescription="URL of MQTT broker. Empty string will use app default" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="StartPluginTest_CmdPayload" shortDescription="Start executing a plugin test">
+        <EntryList>
+          <Entry name="Id"  type="JMSG_MQTT_PLUGIN/TopicPlugin" shortDescription="Plugin ID of test to run" />
        </EntryList>
       </ContainerDataType>
 
@@ -76,17 +60,16 @@
           <Entry name="InvalidCmdCnt"       type="BASE_TYPES/uint16"   />
           <Entry name="ChildValidCmdCnt"    type="BASE_TYPES/uint16"   />
           <Entry name="ChildInvalidCmdCnt"  type="BASE_TYPES/uint16"   />
-          <Entry name="LastTblAction"       type="APP_C_FW/TblActions" />
-          <Entry name="TopicTblLoaded"      type="APP_C_FW/BooleanUint8" />
-          <Entry name="MqttYieldTime"       type="BASE_TYPES/uint32"   />
-          <Entry name="SbPendTime"          type="BASE_TYPES/uint32"   />
+          <Entry name="PluginTestActive"    type="APP_C_FW/BooleanUint8" />
           <Entry name="MqttConnected"       type="APP_C_FW/BooleanUint8" />
           <Entry name="ReconnectAttempts"   type="BASE_TYPES/uint32"   />
-          <Entry name="UnpublishedSbMsgCnt" type="BASE_TYPES/uint32"   />
+          <Entry name="MqttYieldTime"       type="BASE_TYPES/uint32"   />
+          <Entry name="SbPendTime"          type="BASE_TYPES/uint32"   />
           <Entry name="ValidMqttMsgCnt"     type="BASE_TYPES/uint32"   />
           <Entry name="InvalidMqttMsgCnt"   type="BASE_TYPES/uint32"   />
           <Entry name="ValidSbMsgCnt"       type="BASE_TYPES/uint32"   />
           <Entry name="InvalidSbMsgCnt"     type="BASE_TYPES/uint32"   />
+          <Entry name="UnpublishedSbMsgCnt" type="BASE_TYPES/uint32"   />
         </EntryList>
       </ContainerDataType>
 
@@ -109,24 +92,6 @@
         </ConstraintSet>
       </ContainerDataType>
 
-      <ContainerDataType name="LoadTbl" baseType="CommandBase">
-        <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/LOAD_TBL_CC}" />
-        </ConstraintSet>
-        <EntryList>
-          <Entry type="LoadTbl_CmdPayload" name="Payload" />
-        </EntryList>
-      </ContainerDataType>
-
-      <ContainerDataType name="DumpTbl" baseType="CommandBase">
-        <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/DUMP_TBL_CC}" />
-        </ConstraintSet>
-        <EntryList>
-          <Entry type="DumpTbl_CmdPayload" name="Payload" />
-        </EntryList>
-      </ContainerDataType>
-
       <ContainerDataType name="ConnectToMqttBroker" baseType="CommandBase" shortDescription="Connect or reconnect to an MQTT broker">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 0" />
@@ -142,6 +107,27 @@
         </ConstraintSet>
       </ContainerDataType>
 
+      <ContainerDataType name="StartPluginTest" baseType="CommandBase" shortDescription="Start built-in test">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="StartPluginTest_CmdPayload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>      
+
+      <ContainerDataType name="StopPluginTest" baseType="CommandBase" shortDescription="Start built-in test">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 3" />
+        </ConstraintSet>
+      </ContainerDataType>     
+      
+      <ContainerDataType name="SendConnectionInfo" baseType="CommandBase" shortDescription="Send an event message with MQTT broker connection information">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 4" />
+        </ConstraintSet>
+      </ContainerDataType>     
+      
       <!--****************************************-->
       <!--**** DataTypeSet: Telemetry Packets ****-->
       <!--****************************************-->

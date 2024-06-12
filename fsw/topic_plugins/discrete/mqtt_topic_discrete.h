@@ -13,22 +13,23 @@
 ** GNU Affero General Public License for more details.
 **
 ** Purpose:
-**   Manage MQTT 3-axis rate topic
+**   Manage JMSG MQTT discrete plugin topic
 **
 ** Notes:
 **   None
 **
 */
 
-#ifndef _mqtt_gw_topic_rate_
-#define _mqtt_gw_topic_rate_
+#ifndef _mqtt_topic_discrete_
+#define _mqtt_topic_discrete_
 
 /*
 ** Includes
 */
 
 #include "app_cfg.h"
-#include "mqtt_gw_topic_plugin.h"
+#include "jmsg_topic_plugin.h"
+#include "jmsg_mqtt_plugin_eds_typedefs.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -39,49 +40,41 @@
 ** Event Message IDs
 */
 
-#define MQTT_GW_TOPIC_RATE_INIT_SB_MSG_TEST_EID  (MQTT_GW_TOPIC_PLUGIN_3_BASE_EID + 0)
-#define MQTT_GW_TOPIC_RATE_SB_MSG_TEST_EID       (MQTT_GW_TOPIC_PLUGIN_3_BASE_EID + 1)
-#define MQTT_GW_TOPIC_RATE_LOAD_JSON_DATA_EID    (MQTT_GW_TOPIC_PLUGIN_3_BASE_EID + 2)
-#define MQTT_GW_TOPIC_RATE_JSON_TO_CCSDS_ERR_EID (MQTT_GW_TOPIC_PLUGIN_3_BASE_EID + 3)
+#define MQTT_TOPIC_DISCRETE_BASE_EID   JMSG_USR_TopicPluginBaseEid_USR_1 // Create local define in case USR assignment changes
+
+#define MQTT_TOPIC_DISCRETE_INIT_PLUGIN_TEST_EID  (MQTT_TOPIC_DISCRETE_BASE_EID + 0)
+#define MQTT_TOPIC_DISCRETE_PLUGIN_TEST_EID       (MQTT_TOPIC_DISCRETE_BASE_EID + 1)
+#define MQTT_TOPIC_DISCRETE_LOAD_JSON_DATA_EID    (MQTT_TOPIC_DISCRETE_BASE_EID + 2)
+#define MQTT_TOPIC_DISCRETE_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_DISCRETE_BASE_EID + 3)
 
 /**********************/
 /** Type Definitions **/
 /**********************/
 
-typedef enum 
-{
-
-  MQTT_GW_TOPIC_RATE_TEST_AXIS_X = 1,
-  MQTT_GW_TOPIC_RATE_TEST_AXIS_Y = 2,
-  MQTT_GW_TOPIC_RATE_TEST_AXIS_Z = 3
-  
-} MQTT_GW_TOPIC_RATE_TestAxis_t;
 
 /******************************************************************************
 ** Telemetry
 ** 
-** MQTT_GW_RatePluginTlm_t & MQTT_GW_RatePluginTlm_Payload_t defined in EDS
+** JMSG_MQTT_PLUGIN_DiscreteTlmMsg_t & JMSG_MQTT_PLUGIN_DiscreteTlmMsg_Payload_t are defined in EDS
 */
 
 typedef struct
 {
 
    /*
-   ** Rate Telemetry
+   ** Discrete Telemetry
    */
    
-   MQTT_GW_RatePluginTlm_t  TlmMsg;
-   char                     JsonMsgPayload[1024];
+   char            JsonMsgPayload[1024];
+   CFE_SB_MsgId_t  SbMsgId;
+   JMSG_MQTT_PLUGIN_DiscreteTlmMsg_t  TlmMsg;
 
    /*
-   ** SB test puts rate on a single axis for N cycles
+   ** The plugin test treats the 4 integers as a 4-bit integer that is
+   ** incremented from 0..15 
    */
    
-   MQTT_GW_TOPIC_RATE_TestAxis_t  TestAxis;
-   uint16   TestAxisCycleCnt;
-   uint16   TestAxisCycleLim;
-   float    TestAxisDefRate;
-   float    TestAxisRate;
+   uint16  TestData;
    
    /*
    ** Subset of the standard CJSON table data because this isn't using the
@@ -94,7 +87,7 @@ typedef struct
    uint32  JsonToCfeCnt;
    
    
-} MQTT_GW_TOPIC_RATE_Class_t;
+} MQTT_TOPIC_DISCRETE_Class_t;
 
 
 /************************/
@@ -103,17 +96,16 @@ typedef struct
 
 
 /******************************************************************************
-** Function: MQTT_GW_TOPIC_RATE_Constructor
+** Function: MQTT_TOPIC_DISCRETE_Constructor
 **
-** Initialize the MQTT rate topic
-**
+** Initialize the JMSG MQTT discrete plugin topic
+
 ** Notes:
 **   None
 **
 */
-void MQTT_GW_TOPIC_RATE_Constructor(MQTT_GW_TOPIC_RATE_Class_t *MqttGwTopicRatePtr,
-                                    MQTT_TOPIC_TBL_PluginFuncTbl_t *PluginFuncTbl,
-                                    CFE_SB_MsgId_t TlmMsgMid);
+void MQTT_TOPIC_DISCRETE_Constructor(MQTT_TOPIC_DISCRETE_Class_t *MqttTopicDiscretePtr,
+                                     JMSG_USR_TopicPlugin_Enum_t TopicPlugin);
 
 
-#endif /* _mqtt_gw_topic_rate_ */
+#endif /* _mqtt_topic_discrete_ */

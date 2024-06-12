@@ -130,7 +130,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData);
 **   None
 **
 */
-bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *MsgPt,
+bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *CfeMsgPt,
                             const char **Topic, const char **Payload);
 
 

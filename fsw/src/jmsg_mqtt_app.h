@@ -72,7 +72,6 @@ typedef struct
    INITBL_Class_t    IniTbl; 
    CFE_SB_PipeId_t   CmdPipe;
    CMDMGR_Class_t    CmdMgr;
-   TBLMGR_Class_t    TblMgr;
    CHILDMGR_Class_t  ChildMgr;
       
    /*
@@ -90,7 +89,6 @@ typedef struct
    uint32 PollCmdCnt;
    uint32 PerfId;
 
-   CFE_SB_MsgId_t  JMsgLibCmdMid;   
    CFE_SB_MsgId_t  CmdMid;
    CFE_SB_MsgId_t  ExecuteMid;
    CFE_SB_MsgId_t  SendStatusMid;

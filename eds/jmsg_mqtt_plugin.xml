@@ -15,7 +15,7 @@
     GNU Affero General Public License for more details.
 
     Purpose: 
-      Defines the Software Bus messages a JSON message containing discrete values
+      Defines the Software Bus messages for the JMSG_MQTT app's topic plugins
 
     Notes:
       1. This document adheres to the Electronic Data Sheet (EDS) XML schema 
@@ -23,14 +23,21 @@
 
 -->
 <PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
-  <Package name="JMSG_MQTT_TOPICS" shortDescription="Define JMSG_MQTT app's JMSG topic plugin messages">
+  <Package name="JMSG_MQTT_PLUGIN" shortDescription="Define JMSG_MQTT app's JMSG topic plugin messages">
     <DataTypeSet>
 
       <!--***********************************-->
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
 
-      
+      <EnumeratedDataType name="TopicPlugin" shortDescription="Assign values from JMSG_USR TopicPlugin definitions" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="Discrete" value="${JMSG_USR/TOPIC_PLUGIN_USR_1}"  shortDescription="" />
+          <Enumeration label="Rate"     value="${JMSG_USR/TOPIC_PLUGIN_USR_2}"  shortDescription="" />
+        </EnumerationList>
+      </EnumeratedDataType>
+ 
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
