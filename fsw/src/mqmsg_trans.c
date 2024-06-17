@@ -70,7 +70,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
 
    enum JMSG_USR_TopicPlugin topic = JMSG_USR_TopicPlugin_Enum_t_MIN;
    uint16  TopicLen;
-   char    TopicStr[JMSG_USR_MAX_TOPIC_NAME_LEN];
+   char    TopicStr[JMSG_USR_TOPIC_NAME_MAX_LEN];
    bool    MsgFound = false;
    const JMSG_TOPIC_TBL_Topic_t *Topic;
    JMSG_TOPIC_TBL_JsonToCfe_t JsonToCfe;
@@ -97,7 +97,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
             
             TopicLen = strlen(Topic->Name);
             
-            if (TopicLen < JMSG_USR_MAX_TOPIC_NAME_LEN)
+            if (TopicLen < JMSG_USR_TOPIC_NAME_MAX_LEN)
             {
                CFE_EVS_SendEvent(MQMSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                                  "Table topic name=%s, length=%d", Topic->Name, TopicLen);
@@ -115,7 +115,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
             {
                CFE_EVS_SendEvent(MQMSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR,
                                  "Table topic name %s with length %d exceeds maximum length %d", 
-                                 Topic->Name, TopicLen, JMSG_USR_MAX_TOPIC_NAME_LEN);               
+                                 Topic->Name, TopicLen, JMSG_USR_TOPIC_NAME_MAX_LEN);               
             }
          }
          if (!MsgFound)

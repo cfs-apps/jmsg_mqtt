@@ -38,6 +38,14 @@
         </EnumerationList>
       </EnumeratedDataType>
  
+      <EnumeratedDataType name="TopicPluginBaseEid" shortDescription="Assign values from JMSG_USR TopicPlugin definitions" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="Discrete" value="${JMSG_USR/TOPIC_PLUGIN_BASE_EID_USR_1}"  shortDescription="" />
+          <Enumeration label="Rate"     value="${JMSG_USR/TOPIC_PLUGIN_BASE_EID_USR_2}"  shortDescription="" />
+        </EnumerationList>
+      </EnumeratedDataType>
+      
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->

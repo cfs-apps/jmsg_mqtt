@@ -45,7 +45,7 @@
 ** 1.0 - Initial refactoring of Alan's MQTT
 ** 1.4 - refactored sbmsg plugin into seperate cmd/tlm plugins
 ** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
-** 2.0 - Refactor to create a new JMSG_LIB
+** 2.0 - Refactor with creation of JMSG_LIB
 */
 
 #define  JMSG_MQTT_APP_MAJOR_VER      2

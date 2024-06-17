@@ -41,12 +41,11 @@
 ** Event Message IDs
 */
 
-#define MQTT_TOPIC_RATE_BASE_EID   JMSG_USR_TopicPluginBaseEid_USR_1 // Create local define in case USR assignment changes
+#define MQTT_TOPIC_RATE_INIT_SB_MSG_TEST_EID  (JMSG_MQTT_PLUGIN_TopicPluginBaseEid_Rate + 0)
+#define MQTT_TOPIC_RATE_SB_MSG_TEST_EID       (JMSG_MQTT_PLUGIN_TopicPluginBaseEid_Rate + 1)
+#define MQTT_TOPIC_RATE_LOAD_JSON_DATA_EID    (JMSG_MQTT_PLUGIN_TopicPluginBaseEid_Rate + 2)
+#define MQTT_TOPIC_RATE_JSON_TO_CCSDS_ERR_EID (JMSG_MQTT_PLUGIN_TopicPluginBaseEid_Rate + 3)
 
-#define MQTT_TOPIC_RATE_INIT_SB_MSG_TEST_EID  (MQTT_TOPIC_RATE_BASE_EID + 0)
-#define MQTT_TOPIC_RATE_SB_MSG_TEST_EID       (MQTT_TOPIC_RATE_BASE_EID + 1)
-#define MQTT_TOPIC_RATE_LOAD_JSON_DATA_EID    (MQTT_TOPIC_RATE_BASE_EID + 2)
-#define MQTT_TOPIC_RATE_JSON_TO_CCSDS_ERR_EID (MQTT_TOPIC_RATE_BASE_EID + 3)
 
 /**********************/
 /** Type Definitions **/
