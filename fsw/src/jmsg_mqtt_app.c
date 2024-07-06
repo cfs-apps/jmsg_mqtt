@@ -108,7 +108,7 @@ void JMSG_MQTT_AppMain(void)
       ** Since the app is data driven MQTT_MGR_Execute() pends on SB for topic messages
       ** and the command pipe is polled below at a lower rate
       */ 
-      MQTT_MGR_Execute(JMsgMqttApp.PerfId);
+      MQTT_MGR_ProcessSbTopicMsgs(JMsgMqttApp.PerfId);
       if (++JMsgMqttApp.PollCmdCnt > JMsgMqttApp.PollCmdInterval)
       {
           JMsgMqttApp.PollCmdCnt = 0;
@@ -176,6 +176,7 @@ static int32 InitApp(void)
 
    int32 RetStatus = APP_C_FW_CFS_ERROR;
    
+   CFE_SB_Qos_t SbQos;
    CHILDMGR_TaskInit_t ChildTaskInit;
 
 
@@ -192,8 +193,9 @@ static int32 InitApp(void)
       JMsgMqttApp.PerfId = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);
       CFE_ES_PerfLogEntry(JMsgMqttApp.PerfId);
 
-      JMsgMqttApp.CmdMid        = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_CMD_TOPICID));
-      JMsgMqttApp.SendStatusMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_STATUS_TLM_TOPICID));
+      JMsgMqttApp.CmdMid         = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_CMD_TOPICID));
+      JMsgMqttApp.SendStatusMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_STATUS_TLM_TOPICID));
+      JMsgMqttApp.TopicSubTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID));
    
       /* Construct contained objects */
       MQTT_MGR_Constructor(MQTT_MGR_OBJ, INITBL_OBJ);
@@ -213,17 +215,20 @@ static int32 InitApp(void)
  
       CFE_SB_CreatePipe(&JMsgMqttApp.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_CMD_PIPE_NAME));  
       CFE_SB_Subscribe(JMsgMqttApp.CmdMid, JMsgMqttApp.CmdPipe);
+      
+      SbQos.Priority    = 0;
+      SbQos.Reliability = 0;
+      CFE_SB_SubscribeEx(JMsgMqttApp.TopicSubTlmMid, JMsgMqttApp.CmdPipe, SbQos, JMSG_PLATFORM_TOPIC_PLUGIN_MAX);
+      
       //TODO: See file prologue. CFE_SB_Subscribe(JMsgMqttApp.SendStatusMid, JMsgMqttApp.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_NOOP_CC,   NULL, JMSG_MQTT_APP_NoOpCmd,     0);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_RESET_CC,  NULL, JMSG_MQTT_APP_ResetAppCmd, 0);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_CONNECT_TO_MQTT_BROKER_CC,   MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,   sizeof(JMSG_MQTT_ConnectToMqttBroker_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_RECONNECT_TO_MQTT_BROKER_CC, MQTT_MGR_OBJ, MQTT_MGR_ReconnectToMqttBrokerCmd, 0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_START_PLUGIN_TEST_CC,        MQTT_MGR_OBJ, MQTT_MGR_StartPluginTestCmd,       sizeof(JMSG_MQTT_StartPluginTest_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_STOP_PLUGIN_TEST_CC,         MQTT_MGR_OBJ, MQTT_MGR_StopPluginTestCmd,        0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_SEND_CONNECTION_INFO_CC,     MQTT_MGR_OBJ, MQTT_MGR_SendConnectionInfoCmd,    0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_CONNECT_TO_MQTT_BROKER_CC,    MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,    sizeof(JMSG_MQTT_ConnectToMqttBroker_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_RECONNECT_TO_MQTT_BROKER_CC,  MQTT_MGR_OBJ, MQTT_MGR_ReconnectToMqttBrokerCmd,  0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_SEND_CONNECTION_INFO_CC,      MQTT_MGR_OBJ, MQTT_MGR_SendConnectionInfoCmd,     0);
       
       CFE_MSG_Init(CFE_MSG_PTR(JMsgMqttApp.StatusTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_STATUS_TLM_TOPICID)), sizeof(JMSG_MQTT_StatusTlm_t));
 
@@ -275,6 +280,10 @@ static int32 ProcessCommands(void)
          {   
             SendStatusPkt();
          }
+         else if (CFE_SB_MsgId_Equal(MsgId, JMsgMqttApp.TopicSubTlmMid))
+         {   
+            MQTT_MGR_SubscribeToTopicPlugin(&SbBufPtr->Msg);
+         }
          else
          {   
             CFE_EVS_SendEvent(JMSG_MQTT_APP_INVALID_MID_EID, CFE_EVS_EventType_ERROR,
@@ -324,7 +333,6 @@ void SendStatusPkt(void)
    Payload->MqttYieldTime     = JMsgMqttApp.MqttMgr.MqttYieldTime;
    Payload->SbPendTime        = JMsgMqttApp.MqttMgr.SbPendTime;
 
-   Payload->PluginTestActive  = JMsgMqttApp.MqttMgr.PluginTestActive;
    Payload->MqttConnected     = JMsgMqttApp.MqttMgr.MqttClient.Connected;
    Payload->ReconnectAttempts = JMsgMqttApp.MqttMgr.Reconnect.Attempts;
 

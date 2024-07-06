@@ -43,12 +43,11 @@
        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="StartPluginTest_CmdPayload" shortDescription="Start executing a plugin test">
+      <ContainerDataType name="SubscribeToTopicPlugin_CmdPayload" shortDescription="">
         <EntryList>
-          <Entry name="Id"  type="JMSG_MQTT_PLUGIN/TopicPlugin" shortDescription="Plugin ID of test to run" />
+          <Entry name="Id"  type="JMSG_PLATFORM/TopicPlugin" shortDescription="Plugin ID of test to run" />
        </EntryList>
       </ContainerDataType>
-
 
       <!--*****************************************-->
       <!--**** DataTypeSet: Telemetry Payloads ****-->
@@ -60,7 +59,6 @@
           <Entry name="InvalidCmdCnt"       type="BASE_TYPES/uint16"   />
           <Entry name="ChildValidCmdCnt"    type="BASE_TYPES/uint16"   />
           <Entry name="ChildInvalidCmdCnt"  type="BASE_TYPES/uint16"   />
-          <Entry name="PluginTestActive"    type="APP_C_FW/BooleanUint8" />
           <Entry name="MqttConnected"       type="APP_C_FW/BooleanUint8" />
           <Entry name="ReconnectAttempts"   type="BASE_TYPES/uint32"   />
           <Entry name="MqttYieldTime"       type="BASE_TYPES/uint32"   />
@@ -107,27 +105,13 @@
         </ConstraintSet>
       </ContainerDataType>
 
-      <ContainerDataType name="StartPluginTest" baseType="CommandBase" shortDescription="Start built-in test">
+      <ContainerDataType name="SendConnectionInfo" baseType="CommandBase" shortDescription="Send an event message with MQTT broker connection information">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
         </ConstraintSet>
-        <EntryList>
-          <Entry type="StartPluginTest_CmdPayload" name="Payload" />
-        </EntryList>
-      </ContainerDataType>      
+      </ContainerDataType>
 
-      <ContainerDataType name="StopPluginTest" baseType="CommandBase" shortDescription="Start built-in test">
-        <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 3" />
-        </ConstraintSet>
-      </ContainerDataType>     
-      
-      <ContainerDataType name="SendConnectionInfo" baseType="CommandBase" shortDescription="Send an event message with MQTT broker connection information">
-        <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 4" />
-        </ConstraintSet>
-      </ContainerDataType>     
-      
+
       <!--****************************************-->
       <!--**** DataTypeSet: Telemetry Packets ****-->
       <!--****************************************-->

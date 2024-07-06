@@ -24,9 +24,7 @@
 ** Includes
 */
 
-#include "app_cfg.h"
 #include "mqtt_mgr.h"
-#include "jmsg_mqtt_topic_plugin.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -47,8 +45,6 @@
 
 static bool ConfigSubscription(const JMSG_TOPIC_TBL_Topic_t *Topic, JMSG_TOPIC_TBL_SubscriptionOptEnum_t ConfigOpt);
 static void MqttConnectionError(void);
-static void ProcessSbTopicMsgs(uint32 PerfId);
-static void PluginTestChildTask(void);
 
 /**********************/
 /** Global File Data **/
@@ -70,15 +66,16 @@ static MQTT_MGR_Class_t *MqttMgr;
 */
 void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr, const INITBL_Class_t *IniTbl)
 {
-
+   
+   int32 SysStatus;
+   
    MqttMgr = MqttMgrPtr;
    
    memset(MqttMgr, 0, sizeof( MQTT_MGR_Class_t));
    
    MqttMgr->IniTbl = IniTbl;
-   MqttMgr->MqttYieldTime   = INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_CLIENT_YIELD_TIME);
-   MqttMgr->SbPendTime      = INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_PEND_TIME);
-   MqttMgr->PluginTestDelay = INITBL_GetIntConfig(INITBL_OBJ, CFG_TEST_CHILD_DELAY);
+   MqttMgr->MqttYieldTime = INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_CLIENT_YIELD_TIME);
+   MqttMgr->SbPendTime    = INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_PEND_TIME);
    
    MqttMgr->Reconnect.Enabled  = (INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_ENABLE_RECONNECT) == 1);
    MqttMgr->Reconnect.Period   = INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_RECONNECT_PERIOD);
@@ -88,10 +85,15 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr, const INITBL_Class_t *In
 
    MQMSG_TRANS_Constructor(&MqttMgr->MqMsgTrans, INITBL_OBJ);
 
-   // Must construct the pipe prior to topic plugin construction & configuration
-   CFE_SB_CreatePipe(&MqttMgr->TopicPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_DEPTH),
-                     INITBL_GetStrConfig(INITBL_OBJ, CFG_TOPIC_PIPE_NAME));
-   JMSG_MQTT_TOPIC_PLUGIN_Constructor(ConfigSubscription);
+   SysStatus = CFE_SB_CreatePipe(&MqttMgr->TopicPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_DEPTH),
+                                 INITBL_GetStrConfig(INITBL_OBJ, CFG_TOPIC_PIPE_NAME));
+   if (SysStatus != CFE_SUCCESS)
+   {
+      CFE_EVS_SendEvent(MQTT_MGR_CONSTRUCTOR_EID, CFE_EVS_EventType_ERROR, 
+                        "Error creating topic pipe %s,depth %d, return status %d",
+                        INITBL_GetStrConfig(INITBL_OBJ, CFG_TOPIC_PIPE_NAME),
+                        INITBL_GetIntConfig(INITBL_OBJ, CFG_TOPIC_PIPE_DEPTH), SysStatus);      
+   }
    
 } /* End MQTT_MGR_Constructor() */
 
@@ -170,22 +172,48 @@ bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *
 
 
 /******************************************************************************
-** Function: MQTT_MGR_Execute
+** Function: MQTT_MGR_ProcessSbTopicMsgs
 **
-** Perform management functions that need to be performed on a periodic basis.
+** Notes:
+**   1. MQMSG_TRANS_ProcessSbMsg() and MQTT_CLIENT_Publish() send error events
+**      so no need to send any events here.
 **
 */
-void MQTT_MGR_Execute(uint32 PerfId)
+void MQTT_MGR_ProcessSbTopicMsgs(uint32 PerfId)
 {
 
-   ProcessSbTopicMsgs(PerfId);
-   
-   if (MqttMgr->PluginTestActive)
-   {
-      JMSG_TOPIC_TBL_RunTopicPluginTest(MqttMgr->PluginTestId, false, MqttMgr->PluginTestParam);
-   }
+   int32  SbStatus;
+   CFE_SB_Buffer_t  *SbBufPtr;
+   const char *Topic;
+   const char *Payload;
 
-} /* End MQTT_MGR_Execute() */
+   do 
+   {
+      CFE_ES_PerfLogExit(PerfId);
+      SbStatus = CFE_SB_ReceiveBuffer(&SbBufPtr, MqttMgr->TopicPipe, MqttMgr->SbPendTime);
+      CFE_ES_PerfLogEntry(PerfId);
+   
+      if (SbStatus == CFE_SUCCESS)
+      {
+         if (MqttMgr->MqttClient.Connected)
+         {
+            if (MQMSG_TRANS_ProcessSbMsg(&SbBufPtr->Msg, &Topic, &Payload))
+            {
+               if(!MQTT_CLIENT_Publish(Topic, Payload))
+               {
+                  MqttConnectionError();
+               }
+            }
+         }
+         else
+         {
+            MqttMgr->UnpublishedSbMsgCnt++;
+         }
+      }
+      
+   } while(SbStatus == CFE_SUCCESS);
+   
+} /* End MQTT_MGR_ProcessSbTopicMsgs() */
 
 
 /******************************************************************************
@@ -223,40 +251,6 @@ void MQTT_MGR_ResetStatus(void)
 
 } /* End MQTT_MGR_ResetStatus() */
 
-/******************************************************************************
-** Function: MQTT_MGR_StartPluginTestCmd
-**
-** Notes:
-**   1. Signature must match CMDMGR_CmdFuncPtr_t
-**   2. DataObjPtr is not used
-*/
-bool MQTT_MGR_StartPluginTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
-{
-   
-   const JMSG_MQTT_StartPluginTest_CmdPayload_t *StartPluginTest = 
-                                
-                                CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_MQTT_StartPluginTest_t);   
-
-   uint32 ChildTaskPriority = INITBL_GetIntConfig(INITBL_OBJ, CFG_TEST_CHILD_PRIORITY);
-   
-   MqttMgr->PluginTestActive = true;
-   MqttMgr->PluginTestId     = StartPluginTest->Id;
-   MqttMgr->PluginTestParam  = JMSG_TEST_TestParam_MQTT;
-   
-   CFE_ES_CreateChildTask(&MqttMgr->PluginTestChildTaskId,
-                          INITBL_GetStrConfig(INITBL_OBJ, CFG_TEST_CHILD_NAME),
-                          PluginTestChildTask, 0,
-                          INITBL_GetIntConfig(INITBL_OBJ, CFG_TEST_CHILD_STACK_SIZE),
-                          ChildTaskPriority, 0);
-
-   CFE_EVS_SendEvent(MQTT_MGR_START_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                     "Started plugin test %d with child task priority %d and delay %d",
-                     MqttMgr->PluginTestId, ChildTaskPriority, MqttMgr->PluginTestDelay);
-
-   return true;
-   
-} /* MQTT_MGR_StartPluginTestCmd() */
-
 
 /******************************************************************************
 ** Function: MQTT_MGR_SendConnectionInfoCmd
@@ -289,22 +283,47 @@ bool MQTT_MGR_SendConnectionInfoCmd(void* DataObjPtr, const CFE_MSG_Message_t *M
 
 
 /******************************************************************************
-** Function: MQTT_MGR_StopPluginTestCmd
+** Function: MQTT_MGR_SubscribeToTopicPlugin
 **
-** Notes:
-**   1. Signature must match CMDMGR_CmdFuncPtr_t
-**   2. DataObjPtr is not used
 */
-bool MQTT_MGR_StopPluginTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool MQTT_MGR_SubscribeToTopicPlugin(const CFE_MSG_Message_t *MsgPtr)
 {
+   const JMSG_LIB_TopicSubscribeTlm_Payload_t *TopicSubscribe = CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_LIB_TopicSubscribeTlm_t);
+   bool RetStatus = true;
+
+   if (TopicSubscribe->Protocol == JMSG_LIB_TopicProtocol_MQTT)
+   {
+      JMSG_TOPIC_TBL_SubscriptionOptEnum_t SubscriptionOpt;
+
+      RetStatus = JMSG_TOPIC_TBL_RegisterConfigSubscriptionCallback(TopicSubscribe->Id, ConfigSubscription);      
+     
+      if (RetStatus)
+      {
+
+         const JMSG_TOPIC_TBL_Topic_t *Topic = JMSG_TOPIC_TBL_GetTopic(TopicSubscribe->Id);
+               
+         SubscriptionOpt = JMSG_TOPIC_TBL_SubscribeToTopicMsg(TopicSubscribe->Id, JMSG_TOPIC_TBL_SUB_TO_ROLE);
+         if (SubscriptionOpt == JMSG_TOPIC_TBL_SUB_ERR)
+         {
+            RetStatus = false;
+            CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
+                              "Error subscribing to topic Id: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
+                              TopicSubscribe->Id, Topic->Name, Topic->Cfe, Topic->Cfe);                              
+         }
+         else
+         {
+            CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
+                              "Successfully subscribed to topic Id: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
+                              TopicSubscribe->Id, Topic->Name, Topic->Cfe, Topic->Cfe);
+         }
+         
+      } /* End if registered */
    
-   MqttMgr->PluginTestActive = false;
-   CFE_EVS_SendEvent(MQTT_MGR_START_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-               "Stopped plugin test %d", MqttMgr->PluginTestId);
+   } /* End if MQTT protocol */
    
-   return true;
+   return RetStatus;
    
-} /* MQTT_MGR_StopPluginTestCmd() */
+} /* End MQTT_MGR_SubscribeToTopicPlugin() */
 
 
 /******************************************************************************
@@ -427,64 +446,3 @@ static void MqttConnectionError(void)
    }
    
 } /* MqttConnectionError() */
-
-
-/******************************************************************************
-** Function: ProcessSbTopicMsgs
-**
-** Notes:
-**   1. MQMSG_TRANS_ProcessSbMsg() and MQTT_CLIENT_Publish() send error events
-**      so no need to send any events here.
-*/
-static void ProcessSbTopicMsgs(uint32 PerfId)
-{
-
-   int32  SbStatus;
-   CFE_SB_Buffer_t  *SbBufPtr;
-   const char *Topic;
-   const char *Payload;
-
-   do 
-   {
-      CFE_ES_PerfLogExit(PerfId);
-      SbStatus = CFE_SB_ReceiveBuffer(&SbBufPtr, MqttMgr->TopicPipe, MqttMgr->SbPendTime);
-      CFE_ES_PerfLogEntry(PerfId);
-   
-      if (SbStatus == CFE_SUCCESS)
-      {
-         if (MqttMgr->MqttClient.Connected)
-         {
-            if (MQMSG_TRANS_ProcessSbMsg(&SbBufPtr->Msg, &Topic, &Payload))
-            {
-               if(!MQTT_CLIENT_Publish(Topic, Payload))
-               {
-                  MqttConnectionError();
-               }
-            }
-         }
-         else
-         {
-            MqttMgr->UnpublishedSbMsgCnt++;
-         }
-      }
-      
-   } while(SbStatus == CFE_SUCCESS);
-   
-} /* End ProcessSbTopicMsgs() */
-
-
-/******************************************************************************
-** Function: TestChildTask
-**
-*/
-static void PluginTestChildTask(void)
-{
-
-   while (MqttMgr->PluginTestActive)
-   {
-      JMSG_TOPIC_TBL_RunTopicPluginTest(MqttMgr->PluginTestId, false, MqttMgr->PluginTestParam);
-      OS_TaskDelay(MqttMgr->PluginTestDelay);
-   }
-
-   
-} /* End PluginTestChildTask() */

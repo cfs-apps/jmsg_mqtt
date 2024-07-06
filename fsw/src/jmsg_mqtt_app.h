@@ -90,8 +90,8 @@ typedef struct
    uint32 PerfId;
 
    CFE_SB_MsgId_t  CmdMid;
-   CFE_SB_MsgId_t  ExecuteMid;
    CFE_SB_MsgId_t  SendStatusMid;
+   CFE_SB_MsgId_t  TopicSubTlmMid;
        
    MQTT_MGR_Class_t  MqttMgr;
  

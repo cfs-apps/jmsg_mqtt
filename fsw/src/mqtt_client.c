@@ -40,7 +40,7 @@
 /** Global Data **/
 /*****************/
 
-static MQTT_CLIENT_Class_t* MqttClient;
+static MQTT_CLIENT_Class_t *MqttClient;
 static char TestPayload[] = "Test Payload";
 
 /******************************************************************************

@@ -27,7 +27,7 @@
       "tables": ["jmsg_mqtt_ini.json","jmsg_mqtt_topics.json"]
    },
 
-   "requires": ["app_c_fw", "mqtt_lib", "jmsg_lib"]
+   "requires": ["app_c_fw", "mqtt_lib", "jmsg_lib", "jmsg_app"]
 
 }}
 

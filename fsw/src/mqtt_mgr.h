@@ -46,12 +46,11 @@
 ** Event Message IDs
 */
 
-#define MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID  (MQTT_MGR_BASE_EID + 0)
-#define MQTT_MGR_RECONNECT_EID             (MQTT_MGR_BASE_EID + 1)
-#define MQTT_MGR_START_TEST_EID            (MQTT_MGR_BASE_EID + 2)
-#define MQTT_MGR_STOP_TEST_EID             (MQTT_MGR_BASE_EID + 3)
-#define MQTT_MGR_SEND_CONNECTION_INFO_EID  (MQTT_MGR_BASE_EID + 4)
-
+#define MQTT_MGR_CONSTRUCTOR_EID            (MQTT_MGR_BASE_EID + 0)
+#define MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID   (MQTT_MGR_BASE_EID + 1)
+#define MQTT_MGR_RECONNECT_EID              (MQTT_MGR_BASE_EID + 2)
+#define MQTT_MGR_SEND_CONNECTION_INFO_EID   (MQTT_MGR_BASE_EID + 3)
+#define MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID (MQTT_MGR_BASE_EID + 4)
 
 /**********************/
 /** Type Definitions **/
@@ -81,12 +80,6 @@ typedef struct
    MQTT_MGR_Reconnect_t Reconnect;
    
    CFE_SB_PipeId_t TopicPipe;
-   
-   CFE_ES_TaskId_t  PluginTestChildTaskId;
-   bool             PluginTestActive;
-   int16            PluginTestParam;
-   int32            PluginTestDelay;
-   JMSG_USR_TopicPlugin_Enum_t  PluginTestId;
    
    /*
    ** Contained Objects
@@ -135,7 +128,7 @@ bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *
 
 
 /******************************************************************************
-** Function: MQTT_MGR_Execute
+** Function: MQTT_MGR_ProcessSbTopicMsgs
 **
 ** Perform management functions that need to be performed on a periodic basis.
 **
@@ -143,11 +136,10 @@ bool MQTT_MGR_ConnectToMqttBrokerCmd(void* DataObjPtr, const CFE_MSG_Message_t *
 **   1. This function is designed to be continuously called from the app's main
 **      loop so it pends with a timeout on the SB
 **   2. In normal operations it receives topic messages from the SB and 
-**      creates/sends corresponding MQTT JSON messages to the MQTT_CLIENT. It 
-**      also has test modes of operation.
+**      creates/sends corresponding MQTT JSON messages to the MQTT_CLIENT.
 **
 */
-void MQTT_MGR_Execute(uint32 PerfId);
+void MQTT_MGR_ProcessSbTopicMsgs(uint32 PerfId);
 
 
 /******************************************************************************
@@ -167,16 +159,6 @@ void MQTT_MGR_ResetStatus(void);
 
 
 /******************************************************************************
-** Function: MQTT_MGR_StartPluginTestCmd
-**
-** Notes:
-**   1. Signature must match CMDMGR_CmdFuncPtr_t
-**   2. DataObjPtr is not used
-*/
-bool MQTT_MGR_StartPluginTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
 ** Function: MQTT_MGR_SendConnectionInfoCmd
 **
 ** Notes:
@@ -187,13 +169,10 @@ bool MQTT_MGR_SendConnectionInfoCmd(void* DataObjPtr, const CFE_MSG_Message_t *M
 
 
 /******************************************************************************
-** Function: MQTT_MGR_StopPluginTestCmd
+** Function: MQTT_MGR_SubscribeToTopicPlugin
 **
-** Notes:
-**   1. Signature must match CMDMGR_CmdFuncPtr_t
-**   2. DataObjPtr is not used
 */
-bool MQTT_MGR_StopPluginTestCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool MQTT_MGR_SubscribeToTopicPlugin(const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _mqtt_mgr_ */
