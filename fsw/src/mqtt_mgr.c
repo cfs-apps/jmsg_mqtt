@@ -332,6 +332,11 @@ bool MQTT_MGR_SubscribeToTopicPlugin(const CFE_MSG_Message_t *MsgPtr)
 ** Callback function that is called when a topic plugin's configuration
 ** is changed. Perform functions that apply to the network layer.
 **
+** Notes:
+**   1. A SB duplicate subscription event message will be sent if two 
+**      subscription requests are made without an unsubscribe requests
+**      between them.
+**
 */
 static bool ConfigSubscription(const JMSG_TOPIC_TBL_Topic_t *Topic, 
                                JMSG_TOPIC_TBL_SubscriptionOptEnum_t ConfigOpt)
