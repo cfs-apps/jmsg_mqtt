@@ -18,7 +18,7 @@
       "JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID": 0,
        
       "CMD_PIPE_NAME":  "MQTT_CMD_PIPE",
-      "CMD_PIPE_DEPTH": 5,
+      "CMD_PIPE_DEPTH": 10,
 
       "TOPIC_PIPE_NAME":      "MQTT_TOPIC_PIPE",
       "TOPIC_PIPE_DEPTH":     40,
