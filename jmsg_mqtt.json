@@ -24,7 +24,7 @@
       "load_addr": 0,
       "exception-action": 0,
       "app-framework": "osk",
-      "tables": ["jmsg_mqtt_ini.json","jmsg_mqtt_topics.json"]
+      "tables": ["jmsg_mqtt_ini.json"]
    },
 
    "requires": ["app_c_fw", "mqtt_lib", "jmsg_lib", "jmsg_app"]
