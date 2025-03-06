@@ -2,8 +2,10 @@
    "title": "MQTT initialization file",
    "description": ["Define runtime configurations",
                    "Reconnect period is the number of MQTT yield cycles between reconnect attempts",
-                   "MQTT_ENABLE_RECONNECT: 0=Disble, 1=Enable",
-                   "MQTT_BROKER_*: "],
+                   "MQTT_ENABLE_RECONNECT: 0=Disable, 1=Enable",
+                   "https://mqttx.app/web-client#/recent_connections",
+                   "https://www.hivemq.com/demos/websocket-client/"],
+                   
    "config": {
       
       "APP_CFE_NAME": "JMSG_MQTT",
@@ -24,8 +26,7 @@
       "TOPIC_PIPE_DEPTH":     40,
       "TOPIC_PIPE_PEND_TIME": 250,
 
-      "MQTT_BROKER_PORT~":    8000,
-      "MQTT_BROKER_PORT~":    8084,
+      "MQTT_BROKER_PORT~":    8884,
       "MQTT_BROKER_PORT":     1883,
       "MQTT_BROKER_ADDRESS":  "broker.emqx.io",
       "MQTT_BROKER_ADDRESS~":  "broker.hivemq.com",

@@ -95,8 +95,9 @@ bool MQTT_CLIENT_Connect(const char *ClientName, const char *BrokerAddress,
    /*
    ** Init and connect to network
    */
-   
+
    NetworkInit(&MqttClient->Network);
+
    RetCode = NetworkConnect(&MqttClient->Network, (char *)BrokerAddress, BrokerPort);
    if (RetCode == 0) 
    {
