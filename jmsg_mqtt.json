@@ -3,7 +3,8 @@
    "app": {
    
    "title": "JMSG_MQTT",
-   "version": "2.0.0",
+   "version": "3.0.0",
+   "bc-app-spec": "bc-app-spec-v3.0",
    "supplier": "Open STEMware",
    "copyright": "bitValence",
    "url": "https://github.com/cfs-apps/jmsg_mqtt",

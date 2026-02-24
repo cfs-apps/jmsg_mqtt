@@ -46,9 +46,11 @@
 ** 1.4 - refactored sbmsg plugin into seperate cmd/tlm plugins
 ** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
 ** 2.0 - Refactor with creation of JMSG_LIB
+** 3.0 - Compatible with Basecamp 4.0 and cFS 7.0
+**
 */
 
-#define  JMSG_MQTT_APP_MAJOR_VER      2
+#define  JMSG_MQTT_APP_MAJOR_VER      3
 #define  JMSG_MQTT_APP_MINOR_VER      0
 
 
