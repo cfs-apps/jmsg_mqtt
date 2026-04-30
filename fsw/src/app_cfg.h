@@ -46,12 +46,11 @@
 ** 1.4 - refactored sbmsg plugin into seperate cmd/tlm plugins
 ** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
 ** 2.0 - Refactor with creation of JMSG_LIB
-** 3.0 - Compatible with Basecamp 4.0 and cFS 7.0
-**
+** 2.1 - Updates for JMSG project initial release
 */
 
-#define  JMSG_MQTT_APP_MAJOR_VER      3
-#define  JMSG_MQTT_APP_MINOR_VER      0
+#define  JMSG_MQTT_APP_MAJOR_VER      2
+#define  JMSG_MQTT_APP_MINOR_VER      1
 
 
 /******************************************************************************
@@ -77,11 +76,11 @@
 #define CFG_APP_MAIN_PERF_ID     APP_MAIN_PERF_ID
 #define CFG_CHILD_TASK_PERF_ID   CHILD_TASK_PERF_ID
 
-#define CFG_JMSG_MQTT_CMD_TOPICID                 JMSG_MQTT_CMD_TOPICID
-#define CFG_JMSG_MQTT_STATUS_TLM_TOPICID          JMSG_MQTT_STATUS_TLM_TOPICID
-#define CFG_KIT_TO_PUB_WRAPPED_TLM_TOPICID        KIT_TO_PUB_WRAPPED_TLM_TOPICID
-#define CFG_SEND_STATUS_TLM_TOPICID               BC_SCH_2_SEC_TOPICID
-#define CFG_JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID  JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID
+#define CFG_JMSG_MQTT_CMD_TOPICID                     JMSG_MQTT_CMD_TOPICID
+#define CFG_JMSG_MQTT_STATUS_TLM_TOPICID              JMSG_MQTT_STATUS_TLM_TOPICID
+#define CFG_KIT_TO_PUB_WRAPPED_TLM_TOPICID            KIT_TO_PUB_WRAPPED_TLM_TOPICID
+#define CFG_SEND_STATUS_TLM_TOPICID                   BC_SCH_2_SEC_TOPICID
+#define CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID  JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID
 
 #define CFG_CMD_PIPE_NAME            CMD_PIPE_NAME
 #define CFG_CMD_PIPE_DEPTH           CMD_PIPE_DEPTH
@@ -113,7 +112,7 @@
    XX(JMSG_MQTT_STATUS_TLM_TOPICID,uint32) \
    XX(KIT_TO_PUB_WRAPPED_TLM_TOPICID,uint32) \
    XX(BC_SCH_2_SEC_TOPICID,uint32) \
-   XX(JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID,uint32) \
+   XX(JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID,uint32) \
    XX(CMD_PIPE_NAME,char*) \
    XX(CMD_PIPE_DEPTH,uint32) \
    XX(TOPIC_PIPE_NAME,char*) \

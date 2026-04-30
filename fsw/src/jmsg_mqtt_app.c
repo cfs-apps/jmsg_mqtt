@@ -195,7 +195,7 @@ static int32 InitApp(void)
 
       JMsgMqttApp.CmdMid         = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_CMD_TOPICID));
       JMsgMqttApp.SendStatusMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_STATUS_TLM_TOPICID));
-      JMsgMqttApp.TopicSubTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID));
+      JMsgMqttApp.TopicSubTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID));
    
       /* Construct contained objects */
       MQTT_MGR_Constructor(MQTT_MGR_OBJ, INITBL_OBJ);

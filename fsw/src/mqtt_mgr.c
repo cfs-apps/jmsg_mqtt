@@ -288,33 +288,33 @@ bool MQTT_MGR_SendConnectionInfoCmd(void* DataObjPtr, const CFE_MSG_Message_t *M
 */
 bool MQTT_MGR_SubscribeToTopicPlugin(const CFE_MSG_Message_t *MsgPtr)
 {
-   const JMSG_LIB_TopicSubscribeTlm_Payload_t *TopicSubscribe = CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_LIB_TopicSubscribeTlm_t);
+   const JMSG_LIB_TopicSubscribeReqTlm_Payload_t *TopicSubscribeReq = CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_LIB_TopicSubscribeReqTlm_t);
    bool RetStatus = true;
 
-   if (TopicSubscribe->Protocol == JMSG_LIB_TopicProtocol_MQTT)
+   if (TopicSubscribeReq->Protocol == JMSG_LIB_TopicProtocol_MQTT)
    {
       JMSG_TOPIC_TBL_SubscriptionOptEnum_t SubscriptionOpt;
 
-      RetStatus = JMSG_TOPIC_TBL_RegisterConfigSubscriptionCallback(TopicSubscribe->Id, ConfigSubscription);      
+      RetStatus = JMSG_TOPIC_TBL_RegisterConfigSubscriptionCallback(TopicSubscribeReq->Id, ConfigSubscription);      
      
       if (RetStatus)
       {
 
-         const JMSG_TOPIC_TBL_Topic_t *Topic = JMSG_TOPIC_TBL_GetTopic(TopicSubscribe->Id);
+         const JMSG_TOPIC_TBL_Topic_t *Topic = JMSG_TOPIC_TBL_GetTopic(TopicSubscribeReq->Id);
                
-         SubscriptionOpt = JMSG_TOPIC_TBL_SubscribeToTopicMsg(TopicSubscribe->Id, JMSG_TOPIC_TBL_SUB_TO_ROLE);
+         SubscriptionOpt = JMSG_TOPIC_TBL_SubscribeToTopicMsg(TopicSubscribeReq->Id, JMSG_TOPIC_TBL_SUB_TO_ROLE);
          if (SubscriptionOpt == JMSG_TOPIC_TBL_SUB_ERR)
          {
             RetStatus = false;
             CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
                               "Error subscribing to topic Id: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
-                              TopicSubscribe->Id, Topic->Name, Topic->Cfe, Topic->Cfe);                              
+                              TopicSubscribeReq->Id, Topic->Name, Topic->Cfe, Topic->Cfe);                              
          }
          else
          {
             CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
                               "Successfully subscribed to topic Id: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
-                              TopicSubscribe->Id, Topic->Name, Topic->Cfe, Topic->Cfe);
+                              TopicSubscribeReq->Id, Topic->Name, Topic->Cfe, Topic->Cfe);
          }
          
       } /* End if registered */
