@@ -58,20 +58,6 @@
 /**********************/
 
 
-/* 
-** Quality of Service
-*/
-
-typedef enum
-{
-
-   MQTT_CLIENT_QOS0 = QOS0,
-   MQTT_CLIENT_QOS1 = QOS1,
-   MQTT_CLIENT_QOS2 = QOS2
-
-} MQTT_CLIENT_Qos_t; 
-
-
 /*
 ** Process message function callback signature 
 */
@@ -121,7 +107,7 @@ typedef struct
 **      called using the same cmdmgr instance.
 */
 void MQTT_CLIENT_Constructor(MQTT_CLIENT_Class_t *MqttClientPtr,
-                             const INITBL_Class_t *IniTbl);
+                             const INITBL_Class_t *IniTbl, enum QoS PubQos);
 
 
 /******************************************************************************

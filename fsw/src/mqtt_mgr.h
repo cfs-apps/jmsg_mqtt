@@ -47,14 +47,29 @@
 */
 
 #define MQTT_MGR_CONSTRUCTOR_EID            (MQTT_MGR_BASE_EID + 0)
-#define MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID   (MQTT_MGR_BASE_EID + 1)
-#define MQTT_MGR_RECONNECT_EID              (MQTT_MGR_BASE_EID + 2)
-#define MQTT_MGR_SEND_CONNECTION_INFO_EID   (MQTT_MGR_BASE_EID + 3)
-#define MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID (MQTT_MGR_BASE_EID + 4)
+#define MQTT_MGR_QOS_EID                    (MQTT_MGR_BASE_EID + 1)
+#define MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID   (MQTT_MGR_BASE_EID + 2)
+#define MQTT_MGR_RECONNECT_EID              (MQTT_MGR_BASE_EID + 3)
+#define MQTT_MGR_SEND_CONNECTION_INFO_EID   (MQTT_MGR_BASE_EID + 4)
+#define MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID (MQTT_MGR_BASE_EID + 5)
+#define MQTT_MGR_CHILD_EXEC_EID             (MQTT_MGR_BASE_EID + 6)
 
 /**********************/
 /** Type Definitions **/
 /**********************/
+
+/* 
+** Quality of Service defined in MQTTClient.h
+*/
+
+typedef enum
+{
+
+   MQTT_MGR_QOS0 = QOS0,
+   MQTT_MGR_QOS1 = QOS1,
+   MQTT_MGR_QOS2 = QOS2
+
+} MQTT_MGR_Qos_t; 
 
 
 typedef struct
@@ -76,6 +91,9 @@ typedef struct
    uint32  MqttYieldTime;
    uint32  SbPendTime;
    uint32  UnpublishedSbMsgCnt;
+   
+   MQTT_MGR_Qos_t  PubQos;
+   MQTT_MGR_Qos_t  SubQos;
    
    MQTT_MGR_Reconnect_t Reconnect;
    

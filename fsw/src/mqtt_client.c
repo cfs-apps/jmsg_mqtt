@@ -51,7 +51,7 @@ static char TestPayload[] = "Test Payload";
 **       called using the same MQTT_CLIENT instance.
 */
 void MQTT_CLIENT_Constructor(MQTT_CLIENT_Class_t *MqttClientPtr,
-                             const INITBL_Class_t *IniTbl)
+                             const INITBL_Class_t *IniTbl, enum QoS PubQos)
 {
 
    MqttClient = MqttClientPtr;
@@ -62,7 +62,7 @@ void MQTT_CLIENT_Constructor(MQTT_CLIENT_Class_t *MqttClientPtr,
    MqttClient->BrokerPort = INITBL_GetIntConfig(IniTbl, CFG_MQTT_BROKER_PORT);
    sprintf(MqttClient->ClientName,"%s-%d", INITBL_GetStrConfig(IniTbl, CFG_MQTT_CLIENT_NAME), (rand() % 10000));
 
-   MqttClient->PubMsg.qos = MQTT_CLIENT_QOS0;
+   MqttClient->PubMsg.qos = PubQos;
    MqttClient->PubMsg.retained = 0;
    MqttClient->PubMsg.dup = 0;
    MqttClient->PubMsg.id = 0;
@@ -98,6 +98,9 @@ bool MQTT_CLIENT_Connect(const char *ClientName, const char *BrokerAddress,
 
    NetworkInit(&MqttClient->Network);
 
+   CFE_EVS_SendEvent(MQTT_CLIENT_CONNECT_EID, CFE_EVS_EventType_INFORMATION, 
+                     "Attempting to connect to MQTT broker %s:%d ...", BrokerAddress, BrokerPort);
+                     
    RetCode = NetworkConnect(&MqttClient->Network, (char *)BrokerAddress, BrokerPort);
    if (RetCode == 0) 
    {

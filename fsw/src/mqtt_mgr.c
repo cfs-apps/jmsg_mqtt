@@ -45,6 +45,8 @@
 
 static bool ConfigSubscription(const JMSG_TOPIC_TBL_Topic_t *Topic, JMSG_TOPIC_TBL_SubscriptionOptEnum_t ConfigOpt);
 static void MqttConnectionError(void);
+static void SetQos(const INITBL_Class_t *IniTbl);
+
 
 /**********************/
 /** Global File Data **/
@@ -81,7 +83,9 @@ void MQTT_MGR_Constructor(MQTT_MGR_Class_t *MqttMgrPtr, const INITBL_Class_t *In
    MqttMgr->Reconnect.Period   = INITBL_GetIntConfig(INITBL_OBJ, CFG_MQTT_RECONNECT_PERIOD);
    MqttMgr->Reconnect.DelayCnt = MqttMgr->Reconnect.Period;
    
-   MQTT_CLIENT_Constructor(&MqttMgr->MqttClient, INITBL_OBJ);
+   SetQos(INITBL_OBJ);
+   
+   MQTT_CLIENT_Constructor(&MqttMgr->MqttClient, INITBL_OBJ, MqttMgr->PubQos);
 
    MQMSG_TRANS_Constructor(&MqttMgr->MqMsgTrans, INITBL_OBJ);
 
@@ -106,6 +110,10 @@ bool MQTT_MGR_ChildTaskCallback(CHILDMGR_Class_t *ChildMgr)
 {
 
    bool ClientYield;
+   
+   CFE_EVS_SendEvent(MQTT_MGR_CHILD_EXEC_EID, CFE_EVS_EventType_DEBUG,
+                     "MQTT child task yielding for %d millseconds", 
+                     (int)MqttMgr->MqttYieldTime);
    
    ClientYield = MQTT_CLIENT_Yield(MqttMgr->MqttYieldTime);
 
@@ -307,13 +315,13 @@ bool MQTT_MGR_SubscribeToTopicPlugin(const CFE_MSG_Message_t *MsgPtr)
          {
             RetStatus = false;
             CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
-                              "Error subscribing to topic Id: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
+                              "Error subscribing to topic: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
                               TopicSubscribeReq->Id, Topic->Name, Topic->Cfe, Topic->Cfe);                              
          }
          else
          {
             CFE_EVS_SendEvent(MQTT_MGR_SUBSCRIBE_TOPIC_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Successfully subscribed to topic Id: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
+                              "Successfully subscribed to topic: %d, Name: %s, cFE Msg: 0x%04X(%d)", 
                               TopicSubscribeReq->Id, Topic->Name, Topic->Cfe, Topic->Cfe);
          }
          
@@ -367,7 +375,7 @@ static bool ConfigSubscription(const JMSG_TOPIC_TBL_Topic_t *Topic,
          break;
          
       case JMSG_TOPIC_TBL_SUB_JMSG:
-         if (MQTT_CLIENT_Subscribe(Topic->Name, MQTT_CLIENT_QOS2, MQMSG_TRANS_ProcessMqttMsg))
+         if (MQTT_CLIENT_Subscribe(Topic->Name, MqttMgr->SubQos, MQMSG_TRANS_ProcessMqttMsg))
          {
             RetStatus = true;
             CFE_EVS_SendEvent(MQTT_MGR_CONFIG_SUBSCRIPTIONS_EID, CFE_EVS_EventType_INFORMATION, 
@@ -451,3 +459,38 @@ static void MqttConnectionError(void)
    }
    
 } /* MqttConnectionError() */
+
+
+/******************************************************************************
+** Function: SetQos
+**
+** Set the Quality of Service (QoS) for message publications and subscriptions
+**
+** Notes:
+**   1. The IniTbl values are validated prior to being used. An event message
+**      is sent for invalid QoS values and the QoS parameter is set to 
+**      MQTT_MGR_QOS0.
+*/
+static void SetQos(const INITBL_Class_t *IniTbl)
+{
+   
+   MqttMgr->PubQos = INITBL_GetIntConfig(IniTbl, CFG_MQTT_PUB_QOS);
+   if (!(MqttMgr->PubQos >= MQTT_MGR_QOS0 && MqttMgr->PubQos <= MQTT_MGR_QOS2))
+   {
+      CFE_EVS_SendEvent(MQTT_MGR_QOS_EID, CFE_EVS_EventType_ERROR, 
+                        "Invalid CFG_MQTT_PUB_QOS %d outside valid range [%d..%d], set to minimum value",
+                        MqttMgr->PubQos, MQTT_MGR_QOS0, MQTT_MGR_QOS2);
+      MqttMgr->PubQos = MQTT_MGR_QOS0;
+   }
+   
+   
+   MqttMgr->SubQos = INITBL_GetIntConfig(IniTbl, CFG_MQTT_SUB_QOS);
+   if (!(MqttMgr->SubQos >= MQTT_MGR_QOS0 && MqttMgr->SubQos <= MQTT_MGR_QOS2))
+   {
+      CFE_EVS_SendEvent(MQTT_MGR_QOS_EID, CFE_EVS_EventType_ERROR, 
+                        "Invalid CFG_MQTT_SUB_QOS %d outside valid range [%d..%d], set to minimum value",
+                        MqttMgr->SubQos, MQTT_MGR_QOS0, MQTT_MGR_QOS2);
+      MqttMgr->SubQos = MQTT_MGR_QOS0;
+   }
+      
+} /* SetQos() */
