@@ -47,9 +47,10 @@
 ** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
 ** 2.0 - Refactor with creation of JMSG_LIB
 ** 2.1 - Updates for JMSG project initial release
+** 3.1 - Compatible with Basecamp 3.x new app version management
 */
 
-#define  JMSG_MQTT_APP_MAJOR_VER      2
+#define  JMSG_MQTT_APP_MAJOR_VER      3
 #define  JMSG_MQTT_APP_MINOR_VER      1
 
 
