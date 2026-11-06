@@ -43,15 +43,16 @@
 ** Versions:
 **
 ** 1.0 - Initial refactoring of Alan's MQTT
-** 1.4 - refactored sbmsg plugin into seperate cmd/tlm plugins
+** 1.4 - Refactored sbmsg plugin into seperate cmd/tlm plugins
 ** 1.5 - Update to Basecamp v1.12's app_c_fw TBLMGR API
 ** 2.0 - Refactor with creation of JMSG_LIB
 ** 2.1 - Updates for JMSG project initial release
 ** 3.1 - Compatible with Basecamp 3.x new app version management
+** 4.0 - Updated to cFS 7.0 (Basecamp 4.0 release)
 */
 
-#define  JMSG_MQTT_APP_MAJOR_VER      3
-#define  JMSG_MQTT_APP_MINOR_VER      1
+#define  JMSG_MQTT_APP_MAJOR_VER   4
+#define  JMSG_MQTT_APP_MINOR_VER   0
 
 
 /******************************************************************************
@@ -77,10 +78,10 @@
 #define CFG_APP_MAIN_PERF_ID     APP_MAIN_PERF_ID
 #define CFG_CHILD_TASK_PERF_ID   CHILD_TASK_PERF_ID
 
+#define CFG_SEND_STATUS_TLM_TOPICID                   BC_SCH_2_SEC_TOPICID  // Use different CFG_ name instead of BC_SCH_*_TOPICID to localize impact if rate changes
 #define CFG_JMSG_MQTT_CMD_TOPICID                     JMSG_MQTT_CMD_TOPICID
 #define CFG_JMSG_MQTT_STATUS_TLM_TOPICID              JMSG_MQTT_STATUS_TLM_TOPICID
 #define CFG_KIT_TO_PUB_WRAPPED_TLM_TOPICID            KIT_TO_PUB_WRAPPED_TLM_TOPICID
-#define CFG_SEND_STATUS_TLM_TOPICID                   BC_SCH_2_SEC_TOPICID
 #define CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID  JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID
 
 #define CFG_CMD_PIPE_NAME            CMD_PIPE_NAME
@@ -111,10 +112,10 @@
    XX(APP_CFE_NAME,char*) \
    XX(APP_MAIN_PERF_ID,uint32) \
    XX(CHILD_TASK_PERF_ID,uint32) \
+   XX(BC_SCH_2_SEC_TOPICID,uint32) \
    XX(JMSG_MQTT_CMD_TOPICID,uint32) \
    XX(JMSG_MQTT_STATUS_TLM_TOPICID,uint32) \
    XX(KIT_TO_PUB_WRAPPED_TLM_TOPICID,uint32) \
-   XX(BC_SCH_2_SEC_TOPICID,uint32) \
    XX(JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID,uint32) \
    XX(CMD_PIPE_NAME,char*) \
    XX(CMD_PIPE_DEPTH,uint32) \
@@ -146,10 +147,10 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** exceeded so it is the developer's responsibility to verify the ranges. 
 */
 
-#define JMSG_MQTT_APP_BASE_EID   (APP_C_FW_APP_BASE_EID +  0)
-#define MQTT_MGR_BASE_EID        (APP_C_FW_APP_BASE_EID + 20)
-#define MQTT_CLIENT_BASE_EID     (APP_C_FW_APP_BASE_EID + 40)
-#define MQMSG_TRANS_BASE_EID     (APP_C_FW_APP_BASE_EID + 60)
+#define JMSG_MQTT_APP_BASE_EID   (EdsParam_APP_C_FW_APP_BASE_EID +  0)
+#define MQTT_MGR_BASE_EID        (EdsParam_APP_C_FW_APP_BASE_EID + 20)
+#define MQTT_CLIENT_BASE_EID     (EdsParam_APP_C_FW_APP_BASE_EID + 40)
+#define MQMSG_TRANS_BASE_EID     (EdsParam_APP_C_FW_APP_BASE_EID + 60)
 
 
 /******************************************************************************

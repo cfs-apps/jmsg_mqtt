@@ -21,7 +21,7 @@
 **      the MQTT gateway functionality.
 **   2. TODO: Remove 'send Status tlm' logic once the app app has been used
 **      in enough use cases to know the current command processing
-**      and send Status logic is sufficient 
+**      and send status telemetry logic is sufficient 
 **
 */
 
@@ -193,9 +193,9 @@ static int32 InitApp(void)
       JMsgMqttApp.PerfId = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);
       CFE_ES_PerfLogEntry(JMsgMqttApp.PerfId);
 
-      JMsgMqttApp.CmdMid         = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_CMD_TOPICID));
-      JMsgMqttApp.SendStatusMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_STATUS_TLM_TOPICID));
-      JMsgMqttApp.TopicSubTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID));
+      JMsgMqttApp.CmdMid           = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_CMD_TOPICID));
+      JMsgMqttApp.SendStatusTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_STATUS_TLM_TOPICID));
+      JMsgMqttApp.TopicSubTlmMid   = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID));
    
       /* Construct contained objects */
       MQTT_MGR_Constructor(MQTT_MGR_OBJ, INITBL_OBJ);
@@ -215,20 +215,19 @@ static int32 InitApp(void)
  
       CFE_SB_CreatePipe(&JMsgMqttApp.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_CMD_PIPE_NAME));  
       CFE_SB_Subscribe(JMsgMqttApp.CmdMid, JMsgMqttApp.CmdPipe);
+      //TODO: See file prologue. CFE_SB_Subscribe(JMsgMqttApp.SendStatusTlmMid, JMsgMqttApp.CmdPipe);
       
       SbQos.Priority    = 0;
       SbQos.Reliability = 0;
       CFE_SB_SubscribeEx(JMsgMqttApp.TopicSubTlmMid, JMsgMqttApp.CmdPipe, SbQos, JMSG_PLATFORM_TOPIC_PLUGIN_MAX);
       
-      //TODO: See file prologue. CFE_SB_Subscribe(JMsgMqttApp.SendStatusMid, JMsgMqttApp.CmdPipe);
-
       CMDMGR_Constructor(CMDMGR_OBJ);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_NOOP_CC,   NULL, JMSG_MQTT_APP_NoOpCmd,     0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_RESET_CC,  NULL, JMSG_MQTT_APP_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_MQTT_NOOP_CC,   NULL, JMSG_MQTT_APP_NoOpCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_MQTT_RESET_CC,  NULL, JMSG_MQTT_APP_ResetAppCmd, 0);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_CONNECT_TO_MQTT_BROKER_CC,    MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,    sizeof(JMSG_MQTT_ConnectToMqttBroker_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_RECONNECT_TO_MQTT_BROKER_CC,  MQTT_MGR_OBJ, MQTT_MGR_ReconnectToMqttBrokerCmd,  0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_MQTT_SEND_CONNECTION_INFO_CC,      MQTT_MGR_OBJ, MQTT_MGR_SendConnectionInfoCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_MQTT_CONNECT_TO_MQTT_BROKER_CC,    MQTT_MGR_OBJ, MQTT_MGR_ConnectToMqttBrokerCmd,    sizeof(JMSG_MQTT_ConnectToMqttBroker_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_MQTT_RECONNECT_TO_MQTT_BROKER_CC,  MQTT_MGR_OBJ, MQTT_MGR_ReconnectToMqttBrokerCmd,  0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_MQTT_SEND_CONNECTION_INFO_CC,      MQTT_MGR_OBJ, MQTT_MGR_SendConnectionInfoCmd,     0);
       
       CFE_MSG_Init(CFE_MSG_PTR(JMsgMqttApp.StatusTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_MQTT_STATUS_TLM_TOPICID)), sizeof(JMSG_MQTT_StatusTlm_t));
 
@@ -276,7 +275,7 @@ static int32 ProcessCommands(void)
          {
             CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
          } 
-         else if (CFE_SB_MsgId_Equal(MsgId, JMsgMqttApp.SendStatusMid))
+         else if (CFE_SB_MsgId_Equal(MsgId, JMsgMqttApp.SendStatusTlmMid))
          {   
             SendStatusPkt();
          }
