@@ -219,7 +219,7 @@ static int32 InitApp(void)
       
       SbQos.Priority    = 0;
       SbQos.Reliability = 0;
-      CFE_SB_SubscribeEx(JMsgMqttApp.TopicSubTlmMid, JMsgMqttApp.CmdPipe, SbQos, JMSG_PLATFORM_TOPIC_PLUGIN_MAX);
+      CFE_SB_SubscribeEx(JMsgMqttApp.TopicSubTlmMid, JMsgMqttApp.CmdPipe, SbQos, EdsParam_JMSG_PLATFORM_TOPIC_PLUGIN_MAX);
       
       CMDMGR_Constructor(CMDMGR_OBJ);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_MQTT_NOOP_CC,   NULL, JMSG_MQTT_APP_NoOpCmd,     0);

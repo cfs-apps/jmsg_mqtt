@@ -68,9 +68,9 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
    
    MQTTMessage* MsgPtr = MsgData->message;
 
-   enum JMSG_PLATFORM_TopicPlugin topic = JMSG_PLATFORM_TopicPlugin_Enum_t_MIN;
+   JMSG_PLATFORM_TopicPlugin_Enum_t topic = EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MIN;
    uint16  TopicLen;
-   char    TopicStr[JMSG_PLATFORM_TOPIC_NAME_MAX_LEN];
+   char    TopicStr[EdsParam_JMSG_PLATFORM_TOPIC_NAME_MAX_LEN];
    bool    MsgFound = false;
    const JMSG_TOPIC_TBL_Topic_t *Topic;
    JMSG_TOPIC_TBL_JsonToCfe_t JsonToCfe;
@@ -88,7 +88,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
       CFE_EVS_SendEvent(MQMSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                         "MsgPtr->payloadlen=%d", (int)MsgPtr->payloadlen);
 
-      while (!MsgFound && topic < JMSG_PLATFORM_TopicPlugin_Enum_t_MAX)
+      while (!MsgFound && topic < EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MAX)
       {
 
          Topic = JMSG_TOPIC_TBL_GetTopic(topic);
@@ -97,7 +97,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
             
             TopicLen = strlen(Topic->Name);
             
-            if (TopicLen < JMSG_PLATFORM_TOPIC_NAME_MAX_LEN)
+            if (TopicLen < EdsParam_JMSG_PLATFORM_TOPIC_NAME_MAX_LEN)
             {
                CFE_EVS_SendEvent(MQMSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_DEBUG,
                                  "Table topic name=%s, length=%d", Topic->Name, TopicLen);
@@ -115,7 +115,7 @@ void MQMSG_TRANS_ProcessMqttMsg(MessageData *MsgData)
             {
                CFE_EVS_SendEvent(MQMSG_TRANS_PROCESS_MQTT_MSG_EID, CFE_EVS_EventType_ERROR,
                                  "Table topic name %s with length %d exceeds maximum length %d", 
-                                 Topic->Name, TopicLen, JMSG_PLATFORM_TOPIC_NAME_MAX_LEN);               
+                                 Topic->Name, TopicLen, EdsParam_JMSG_PLATFORM_TOPIC_NAME_MAX_LEN);               
             }
          }
          if (!MsgFound)
@@ -213,7 +213,7 @@ bool MQMSG_TRANS_ProcessSbMsg(const CFE_MSG_Message_t *CfeMsgPtr,
                         "MQMSG_TRANS_ProcessSbMsg: Received SB message ID 0x%04X(%d)", 
                         CFE_SB_MsgIdToValue(MsgId), CFE_SB_MsgIdToValue(MsgId)); 
       
-      if ((TopicIndex = JMSG_TOPIC_TBL_MsgIdToTopicPlugin(MsgId)) != JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF)
+      if ((TopicIndex = JMSG_TOPIC_TBL_MsgIdToTopicPlugin(MsgId)) != EdsParam_JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF)
       {
          
          CfeToJson = JMSG_TOPIC_TBL_GetCfeToJson(TopicIndex, &JsonMsgTopic);    
